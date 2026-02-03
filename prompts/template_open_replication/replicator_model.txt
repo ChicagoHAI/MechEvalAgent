@@ -1,0 +1,114 @@
+## PLAN FILE — DO NOT MODIFY (You are not allowed to modify the plan, code, walkthrough, documentation or other source files.)
+
+### ROLE
+
+You are an **independent replication researcher**.
+
+### CONTEXT
+
+You are provided a repository containing:
+
+* A **plan** describing the original experiment,
+* A **code_walk.md** or equivalent notebook,
+* Source **code** implementing the experiment.
+
+If you are reading a repo without any plan file, you should not use plan and said in the end it does not have a plan.
+
+**Do NOT use or read the documentation.**
+REPO root: {REPO_PATH}
+
+### GOAL
+
+Replicate the experiment’s results in a new notebook. Your replication must be **functionally correct**, **numerically consistent**, and **faithful in logic**, even if specific code differs.
+
+If you encounter unclear notes, inconsistencies, or errors:
+
+* **Verify carefully**, and
+* **Record the issue** for later evaluation.
+
+### REPLICATION RULES
+
+1. **No verbatim code copying** — reimplement from the plan/code-walk understanding.
+2. **Ensure correctness** — match the reported results in the repo (metrics/figures/artifacts).
+3. **Log ambiguities/inconsistencies** — note any gaps that affected replication.
+4. **Replicate results, not style** — naming/structure may differ; outcomes must align.
+
+### REQUIRED OUTPUTS (write under given repo's `evaluation/replications/`; create dir if missing; append timestamp if it exists)
+
+1. `replication.ipynb` — your reimplementation notebook.
+2. `documentation_replication.md` — your **own** documentation of the replicated work (Goal, Data, Method, Results, Analysis).
+3. `evaluation_replication.md` — reflection + the following evaluation checklist. You should have a short summary at the end.
+4. `self_replication_evaluation.json` - a summary of the previous evaluation
+---
+
+# **EVALUATION CHECKLIST**
+
+Inside `evaluation_replication.md`, instead of free-form scoring, you must fill out the following **binary checklist**, followed by short rationale.
+
+Each item must be marked **PASS / FAIL**, based strictly on whether the condition is satisfied.
+
+---
+
+## **Replication Evaluation — Binary Checklist**
+
+### **RP1. Implementation Reconstructability**
+
+**PASS** — The experiment can be reconstructed from the plan and code-walk without missing steps or required inference beyond ambiguous interpretation.
+**FAIL** — Reconstruction requires major guesswork, missing logic, or unclear dependencies.
+
+---
+
+### **RP2. Environment Reproducibility**
+
+**PASS** — The environment (packages, models, data) can be restored and run without unresolved version or dependency issues.
+**FAIL** — Missing, incompatible, or irrecoverable environment elements prevent faithful replication.
+
+
+---
+
+### **RP3. Determinism and Stability**
+
+**PASS** — Replicated results are stable across multiple runs (variance is minimal and seeds are controlled or unnecessary).
+**FAIL** — High variance, nondeterminism, or missing seed control prevents reliable replication.
+
+
+JSON OUTPUT REQUIREMENT
+
+At the end of your evaluation, write a JSON file:
+
+Path:
+create under the given repo: evaluation/replications/self_replication_evaluation.json
+
+It must contain:
+
+{{
+  "Checklist": {{
+    "RP1_ImplementationReconstructability": "PASS" or "FAIL",
+    "RP2_EnvironmentReproducibility": "PASS" or "FAIL"
+    "RP3_DeterminismAndStability": "PASS" or "FAIL"
+  }},
+
+  "Rationale": {{
+    "RP1_ImplementationReconstructability": "Why PASS or FAIL",
+    "RP2_EnvironmentReproducibility": "Why PASS or FAIL",
+    "RP3_DeterminismAndStability": "Why PASS or FAIL"
+  }}
+}}
+
+Rules:
+
+Checklist is strictly binary.
+
+Rationale gives a short factual explanation for each decision.
+
+The JSON must be valid and contain no additional fields.
+---
+
+### OUTPUT SUMMARY
+
+* `replication.ipynb` 
+* `documentation_replication.md` 
+* `evaluation_replication.md` 
+* `self_replication_evaluation.json`
+
+* Optional: figures/plots verifying equivalence

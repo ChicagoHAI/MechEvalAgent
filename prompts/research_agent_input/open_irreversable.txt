@@ -1,0 +1,192 @@
+## Mechanistic Analysis Experiment — Event Irreversibility
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** or **gpt2-medium**, loaded via **HookedTransformer**.
+* Use dataset: **minimal-pair event descriptions** contrasting reversible vs. irreversible events, including:
+
+  * Identical contexts with a single verb change,
+  * Variants controlling for tense, agent, and temporal markers.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Understand **how the model represents event irreversibility**, and **where in the network this distinction is encoded**.
+
+The goal is to determine whether irreversibility is:
+
+* Explicitly represented at specific layers,
+* Gradually accumulated across layers,
+* Or implicitly reflected in continuation probabilities without a dedicated representation.
+
+This project may, but does not have to, result in identifying a localized circuit.
+
+---
+
+### TASK DESCRIPTION
+
+Some events are inherently irreversible, while others allow reversal.
+
+Minimal pairs:
+
+**Irreversible**
+
+> “He broke the vase. Later, he ___ it.”
+
+**Reversible**
+
+> “He closed the door. Later, he ___ it.”
+
+Although both share similar structure, the plausible continuation differs due to **event reversibility**. An event is considered irreversible if the original state cannot be plausibly restored by a later action (e.g., breaking a vase permanently destroys its intact state), whereas a reversible event allows a later action to undo or negate its effects (e.g., a closed door can later be opened). Those are examples. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* Differences in internal representations following irreversible vs. reversible events.
+* How temporal reasoning interacts with event semantics.
+* Whether irreversibility constrains predictions early or late in computation.
+* How models rule out impossible continuations.
+
+Your job is to investigate **how irreversibility is encoded and used internally**.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative research workflow** with explicit hypothesis formation and revision.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **how irreversibility might be represented internally**.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What internal signals or layers you expect to differentiate the two cases.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate analysis methods**, including but not limited to:
+
+   * Probing representations across layers
+   * Activation patching between reversible and irreversible contexts
+   * Causal interventions on candidate components
+   * Representation similarity analysis
+   * Controlled perturbations of event semantics
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Reversible vs. irreversible event pairs
+   * Temporal distance variations (“immediately” vs. “later”)
+   * Explicit repair contexts vs. neutral continuations
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you reach a stable explanation, which may be:
+
+   * A **localized layer or circuit** encoding irreversibility, or
+   * A **distributed temporal–semantic process** without a single locus.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+(Use only if circuit-level analysis is appropriate.)
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* If proposing a circuit, only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+Depending on findings, one of the following (or both):
+
+**Circuit or Layer Identification File (if applicable)**
+
+```json
+{
+  "nodes": ["{example event pair}", "a?.h?", "m?", ...]
+}
+```
+
+or
+
+**Process Description**
+
+A written account of how irreversibility constraints arise during prediction.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — What irreversibility means in this study.
+2. **Data** — Example reversible and irreversible event pairs.
+3. **Method** — Experiments performed and rationale.
+4. **Results** — Where and how representations diverge.
+5. **Analysis** — How irreversibility constrains continuation.
+6. **Next Steps** — Open questions and limitations.
+7. **Main Takeaways** — What this reveals about temporal and causal reasoning.
+
+---
+
+### OUTPUT SUMMARY
+
+* Optional `real_circuits_1.json` — if a circuit is identified.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations of layer-wise divergence between reversible and irreversible events.

@@ -1,0 +1,208 @@
+# Large Circuit Tracing Experiment — Modular Addition Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **1-layer transformer** trained on modular addition (available via TransformerLens or train from scratch).
+* Use dataset: Modular addition problems `a + b = c (mod p)` where `p` is prime (e.g., p=113).
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Reverse-engineer the **modular addition circuit** that implements addition modulo a prime using **Discrete Fourier Transform (DFT)** representations, demonstrating how the model learns trigonometric algorithms.
+
+---
+
+### TASK DESCRIPTION
+
+The model is trained to predict `(a + b) mod p` given inputs `a` and `b`.
+
+Example (p=113):
+```
+Input:  "42 + 67 ="
+Output: "109"  (since (42 + 67) mod 113 = 109)
+```
+
+* The task appears to require arithmetic, but the model learns a **non-algorithmic** solution.
+* The circuit uses **Fourier features**: representing numbers as points on the unit circle.
+* Addition becomes **angle addition** in Fourier space: `DFT(a) + DFT(b) = DFT(a+b)`.
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The modular addition circuit implements a **Discrete Fourier Transform algorithm**:
+
+1. **Embedding Layer**
+
+   * Encodes input numbers `a` and `b` as Fourier features (trigonometric representations).
+   * Each input is represented as `cos(2πka/p)` and `sin(2πka/p)` for multiple frequencies `k`.
+
+2. **Attention Head(s)**
+
+   * Combine Fourier representations of `a` and `b`.
+   * Implement **angle addition**: `cos(2πa/p) + cos(2πb/p) → cos(2π(a+b)/p)`.
+   * Use trigonometric identities to compute the sum.
+
+3. **Unembedding Layer**
+
+   * Convert Fourier representation back to the output token.
+   * Decode the result from frequency space to normal space.
+
+**Key insight**: The model learns to use **trigonometric addition formulas** rather than sequential arithmetic.
+
+---
+
+### SRC_NODES
+
+For a 1-layer transformer with 4 heads:
+
+```
+[
+  'input',
+  'a0.h0','a0.h1','a0.h2','a0.h3',
+  'm0'
+]
+```
+
+Note: Both attention heads and MLP may be involved.
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* MLP writes `d_model` dimensions.
+* **No budget constraint specified** (focus on understanding the algorithmic implementation).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (DFT-based modular addition)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., Fourier analysis of embeddings, ablation, neuron analysis)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a0.h0", "a0.h1", "m0"]
+}
+```
+
+Expected: **All components** may be necessary (embeddings, all heads, MLP, unembedding).
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (DFT-based algorithm using trigonometric representations).
+3. **Data** — Example modular addition problems and structure (mod p where p is prime).
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit analysis, Fourier feature evidence, ablation results.
+6. **Analysis** — Whether findings support the hypothesis (presence of trigonometric features, DFT structure).
+7. **Next Steps** — Potential extensions (other modular operations, larger moduli).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Visualizations: Embedding Fourier analysis, neuron activations, frequency plots.
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Model and Dataset Options
+
+**Option 1: Use pre-trained model (if available)**
+```python
+from transformer_lens import HookedTransformer
+# Check if modular addition model exists in TransformerLens zoo
+model = HookedTransformer.from_pretrained("modular-addition")  # if available
+```
+
+**Option 2: Train from scratch (recommended for full understanding)**
+```python
+# Train a 1-layer transformer on modular addition
+# Use p = 113 (prime) for cleaner Fourier structure
+# Training should take <10 minutes on CPU
+```
+
+### Dataset Creation
+
+Generate modular addition dataset:
+```python
+p = 113  # Prime modulus
+dataset = []
+for a in range(p):
+    for b in range(p):
+        c = (a + b) % p
+        dataset.append({"input": f"{a} + {b} =", "output": str(c)})
+```
+
+* **Size**: p² examples (113² = 12,769 for p=113)
+* **Split**: 80% train, 20% test
+* **Format**: Simple text format or tokenized
+
+### Key Metrics
+
+* **Accuracy**: Should achieve >99% on modular addition
+* **Fourier feature detection**:
+  - Check if embeddings contain `cos(2πka/p)` and `sin(2πka/p)` components
+  - Use FFT analysis on embedding vectors
+* **Ablation impact**: Removing heads or MLP should hurt performance
+* **Grokking**: Model may "grok" (sudden generalization) during training - document if observed
+
+### Expected Circuit Properties
+
+* **Clean Fourier structure**: Embeddings should show clear frequency components
+* **Trigonometric computation**: Attention/MLP implements angle addition
+* **All components necessary**: Unlike sparse circuits, modular addition uses most parameters
+* **Mathematical elegance**: Circuit implements a known mathematical algorithm (DFT)
+

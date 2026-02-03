@@ -1,0 +1,163 @@
+# Large Circuit Tracing Experiment — Greater-Than Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** loaded via **HookedTransformer**.
+* Use dataset: **year-span comparison dataset** (synthetic data based on the *“How does GPT-2 compute greater-than?”* paper).
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify a **precise circuit**—a subset of attention heads and MLPs—that reproduces the model’s **“greater-than” comparison behavior** as faithfully as possible while obeying strict **residual write-budget constraints**.
+
+---
+
+### TASK DESCRIPTION
+
+Each example describes a time span, such as:
+*“The war lasted from the year 1732 to the year 17”*.
+
+* The model must predict that the next token completes the **end year**, and it should favor years **greater than the start year** (e.g., 1732 → 17**40**).
+* Evaluation measures how sharply the model distinguishes **end years greater than** the start year from those that are **less than or equal**.
+* The dataset contains multiple event templates and randomized start years to prevent memorization.
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The “greater-than” circuit is hypothesized to include three major component types:
+
+1. **Start-Year Detection Heads**
+
+   * Detect and encode the numerical or positional representation of the starting year.
+
+2. **Comparison MLPs**
+
+   * Convert the start-year representation into a threshold feature that activates when end-year tokens exceed the encoded start year.
+
+3. **Output Selector Heads / MLPs**
+
+   * Route the threshold feature to the output layer, boosting logits for valid greater-than tokens and suppressing lower ones.
+
+Together these components form a localized comparison mechanism enabling GPT-2 to perform relative numeric judgments without explicit arithmetic.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a0.h11','m0',
+  'a1.h0',...,'a1.h11','m1',
+  'a2.h0',...,'a2.h11','m2',
+  'a3.h0',...,'a3.h11','m3',
+  'a4.h0',...,'a4.h11','m4',
+  'a5.h0',...,'a5.h11','m5',
+  'a6.h0',...,'a6.h11','m6',
+  'a7.h0',...,'a7.h11','m7',
+  'a8.h0',...,'a8.h11','m8',
+  'a9.h0',...,'a9.h11','m9',
+  'a10.h0',...,'a10.h11','m10',
+  'a11.h0',...,'a11.h11','m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* Each MLP writes `d_model` dimensions.
+* **Total writes ≤ 11,200.**
+* Only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+### PLAN REQUIREMENTS
+
+Before implementation, you must create
+`logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to
+discover or verify
+2. **Hypothesis** — The specific
+hypothesis being tested (reference the
+three head types above)
+3. **Method** — Your planned approach
+for testing the hypothesis (e.g.,
+activation patching, ablation studies,
+etc.)
+4. **Expected Outcomes** — What results
+would support or refute the hypothesis
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_gt.json`:
+
+```json
+{
+  "nodes": ["input", "a8.h3", "m10", ...]
+}
+```
+
+Check that:
+
+* All nodes are in `src_nodes`.
+* Total writes ≤ 11,200.
+* Naming follows the correct format.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (the three head types \
+   including Duplicate Token, S-Inhibition, Name-Mover)
+2. **Data** — Example IOI sentence and label structure.
+3. ***Method* — Methods and techniques used to conduct the research.
+4. **Results** — Final circuit list, metrics before/after selection, and verification of constraints.
+5. **Analysis** — Whether findings support the hypothesis.
+6. **Next Steps** — Potential extensions or alternative hypotheses.
+7. **Main Takeaways** — What the results implicates, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_gt.json` — final node list.
+* `logs/` — all markdown reports.
+* `notebooks/` — supporting experiment notebooks.
+* Optional visualizations (e.g., token probability curves).
+

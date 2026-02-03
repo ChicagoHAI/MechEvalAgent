@@ -1,0 +1,194 @@
+## Mechanistic Analysis Experiment — Persona Collapse
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **Llama 3.2 3B** or **Qwen 2.5 3B** (or smaller variants like **gpt2-medium**), loaded via **HookedTransformer**.
+* Use dataset: **persona-conditioned prompts and preference questions**, using the **persona–query–response format** provided in the repository.
+
+  * Each example specifies:
+
+    * A persona description,
+    * A question eliciting preferences (e.g., food, values, opinions),
+    * The model’s response.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Understand **why different personas often converge to the same preferences**, despite having distinct persona descriptions.
+
+This phenomenon—**persona collapse**—occurs when surface-level conditioning fails to induce genuinely different internal decision processes.
+
+The goal is to determine whether persona collapse arises from:
+
+* Weak or transient persona representations,
+* Overriding generic preference priors,
+* Bottlenecks in how persona information influences decisions,
+* Or other internal computational factors.
+
+This project may, but does not have to, result in identifying a localized circuit.
+
+---
+
+### TASK DESCRIPTION
+
+Models are often prompted with persona descriptions such as:
+
+> “You are a minimalist chef who values simplicity.”
+> “You are a lavish gourmet who enjoys indulgent experiences.”
+
+Despite these differences, models may still produce **the same preference** when asked a question like:
+
+> “What dessert do you prefer?”
+
+Those are examples. You are allowed to create prompt dataset make it easier to study this questions.
+Phenomena of interest may include (non-exhaustive):
+
+* How persona information is represented internally.
+* Whether persona signals persist across the prompt or decay.
+* How persona conditioning interacts with strong default preferences.
+* Where persona influence fails to affect downstream choice.
+
+Your job is to investigate **why persona conditioning collapses**, and how that behavior arises internally.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative research workflow** with explicit hypothesis formation and revision.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **why persona collapse occurs**.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What persona-related signals you expect to matter.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate analysis methods**, including but not limited to:
+
+   * Probing persona representations across layers
+   * Activation patching between different persona prompts
+   * Causal interventions on components encoding persona information
+   * Representation similarity analysis across personas
+   * Controlled modifications of persona strength or placement
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Strongly divergent personas vs. mildly different personas
+   * Preference questions with high vs. low generic bias
+   * Early vs. late placement of persona descriptions
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you reach a stable explanation, which may be:
+
+   * A **localized circuit** responsible for persona conditioning failure, or
+   * A **distributed explanation** involving dominance of generic preference pathways.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+(Use only if circuit-level analysis is appropriate.)
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* If proposing a circuit, only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+Depending on findings, one of the following (or both):
+
+**Circuit File (if applicable)**
+
+```json
+{
+  "nodes": ["{persona-conditioned prompt}", "a?.h?", "m?", ...]
+}
+```
+
+or
+
+**Process Description**
+
+A written account of how persona information is processed, attenuated, or overridden during preference formation.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — What persona collapse means in this study.
+2. **Data** — Example personas, prompts, and responses.
+3. **Method** — Experiments performed and rationale.
+4. **Results** — When personas diverge vs. collapse.
+5. **Analysis** — Why persona signals fail to affect preferences.
+6. **Next Steps** — How persona control might be improved.
+7. **Main Takeaways** — What this reveals about conditioning and control.
+
+---
+
+### OUTPUT SUMMARY
+
+* Optional `real_circuits_1.json` — if a circuit is identified.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations of persona signal strength across layers.

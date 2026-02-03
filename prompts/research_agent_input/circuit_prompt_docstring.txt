@@ -1,0 +1,211 @@
+# Large Circuit Tracing Experiment — Docstring Completion Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **attn-only-4l** (4-layer attention-only transformer) loaded via **HookedTransformer**.
+* Use dataset: Python docstring examples with argument name completion tasks.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify a **precise circuit**—a subset of attention heads—that enables the model to correctly predict argument names in Python docstrings based on prior context, specifically implementing **induction-like** behavior that is sensitive to syntax patterns.
+
+---
+
+### TASK DESCRIPTION
+
+A Python docstring completion task involves predicting the correct argument name based on the function signature and docstring structure.
+
+Example:
+```python
+def add_numbers(num1, num2):
+    """
+    Add two numbers together.
+
+    Args:
+        num1: The first number
+        num2: The second number  # Model must predict "num2" here
+```
+
+* The model sees the function signature with argument names (e.g., `num1, num2`).
+* The docstring repeats these names in the Args section.
+* The task is to predict the correct argument name at each position in the docstring.
+* This requires **induction** (copying from earlier context) and **syntax sensitivity** (understanding docstring structure).
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The docstring completion circuit is hypothesized to include induction-like heads that:
+
+1. **Previous Token Heads**
+
+   * Attend to the previous token position.
+   * Form the first stage of the induction mechanism.
+   * Typically found in earlier layers.
+
+2. **Induction Heads**
+
+   * Attend to tokens that followed the current token in an earlier context.
+   * Copy argument names from the function signature to the docstring.
+   * Sensitive to syntactic patterns (e.g., argument list structure, "Args:" section).
+   * Typically found in later layers.
+
+These heads work together to implement a **copy-and-complete** mechanism that is syntax-aware.
+
+---
+
+### SRC_NODES
+
+For a 4-layer attention-only model with 4 heads per layer:
+
+```
+[
+  'input',
+  'a0.h0','a0.h1','a0.h2','a0.h3',
+  'a1.h0','a1.h1','a1.h2','a1.h3',
+  'a2.h0','a2.h1','a2.h2','a2.h3',
+  'a3.h0','a3.h1','a3.h2','a3.h3'
+]
+```
+
+Note: This is an attention-only model, so there are **no MLP nodes**.
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* **No budget constraint specified** (toy model analysis focuses on identifying functional heads).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}` or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (induction-like heads for docstring completion)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., activation patching, attention pattern analysis, ablation studies)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a1.h2", "a2.h3", ...]
+}
+```
+
+Check that:
+
+* All nodes are in `src_nodes`.
+* Naming is consistent.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (induction-like heads: Previous Token Heads and Induction Heads).
+3. **Data** — Example Python docstring completion tasks and structure.
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit list, attention pattern analysis, and behavior verification.
+6. **Analysis** — Whether findings support the hypothesis (presence of induction mechanism, syntax sensitivity).
+7. **Next Steps** — Potential extensions (other code completion tasks, larger models).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Optional visualizations (attention patterns, token predictions).
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Dataset Creation
+
+Since there is no standard public dataset for this task, you should:
+
+1. **Create synthetic examples** of Python functions with docstrings.
+2. **Include variety**: Different argument counts (2-5 args), different naming patterns.
+3. **Format consistency**: Use standard Google-style or NumPy-style docstrings.
+4. **Minimum 50 examples** for robust analysis.
+
+Example template:
+```python
+def function_name(arg1, arg2, arg3):
+    """
+    Description.
+
+    Args:
+        arg1: Description of arg1
+        arg2: Description of arg2
+        arg3: Description of ___  # Predict: arg3
+    """
+```
+
+### Model Loading
+
+Load the 4-layer attention-only model:
+```python
+from transformer_lens import HookedTransformer
+model = HookedTransformer.from_pretrained("attn-only-4l")
+```
+
+### Key Metrics
+
+* **Argument name prediction accuracy**: Does the model predict the correct argument name?
+* **Attention patterns**: Do heads show Previous Token → Induction patterns?
+* **Syntax sensitivity**: Does performance degrade when docstring structure is altered?
+* **Ablation impact**: How much does removing candidate heads hurt performance?
+
+### Expected Circuit Properties
+
+* **2-3 attention heads** should be sufficient
+* **Layer distribution**: Previous Token Heads in layers 0-1, Induction Heads in layers 2-3
+* **Attention pattern**: Clear Previous Token and Induction patterns visible in attention matrices
+* **Syntax awareness**: Circuit should fail on malformed docstrings
+

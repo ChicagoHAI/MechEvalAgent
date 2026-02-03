@@ -1,0 +1,242 @@
+# Large Circuit Tracing Experiment — Copy Suppression (Negative Heads) Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** loaded via **HookedTransformer**.
+* Use dataset: Text sequences where token copying would be repetitive or incorrect.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify the **copy suppression circuit** (also called "Negative Heads") that prevents the model from making repetitive predictions by **suppressing recently seen tokens**, demonstrating how GPT-2 implements anti-copying mechanisms.
+
+---
+
+### TASK DESCRIPTION
+
+Copy suppression is the mechanism that prevents models from repeating tokens inappropriately.
+
+Example:
+```
+Input:  "The cat sat on the cat"
+Without suppression: might predict "cat" again (repetitive)
+With suppression: predicts something else (more coherent)
+```
+
+* **Negative Heads** reduce the logit of recently seen tokens.
+* This prevents simple copying and encourages diversity.
+* The primary negative head in GPT-2 Small is **L10.H7** (Layer 10, Head 7).
+
+Key properties:
+* **Negative attention**: Attends to previous occurrences of tokens
+* **Suppressive effect**: Writes negative contributions to those tokens' logits
+* **Context-dependent**: Stronger suppression for very recent tokens
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The copy suppression circuit consists of **Negative Heads** that implement anti-copying:
+
+1. **Negative Head (L10.H7)**
+
+   * Attends to **previous positions** in the context.
+   * For each attended position, identifies what token appeared there.
+   * Writes a **negative contribution** to that token's logit.
+   * Effect: Reduces probability of repeating recently seen tokens.
+
+2. **Supporting Heads** (potentially in other layers)
+
+   * May include additional heads that detect repetition patterns.
+   * May work in composition with L10.H7.
+
+**Mechanism**: The negative head's OV (Output-Value) circuit writes vectors that, when projected through the unembedding, reduce logits for specific tokens.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a0.h11','m0',
+  'a1.h0',...,'a1.h11','m1',
+  'a2.h0',...,'a2.h11','m2',
+  'a3.h0',...,'a3.h11','m3',
+  'a4.h0',...,'a4.h11','m4',
+  'a5.h0',...,'a5.h11','m5',
+  'a6.h0',...,'a6.h11','m6',
+  'a7.h0',...,'a7.h11','m7',
+  'a8.h0',...,'a8.h11','m8',
+  'a9.h0',...,'a9.h11','m9',
+  'a10.h0',...,'a10.h11','m10',
+  'a11.h0',...,'a11.h11','m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* Each MLP writes `d_model` dimensions.
+* **No budget constraint specified** (focus on identifying the suppression mechanism).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (Negative Head L10.H7 suppresses token repetition)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., direct logit attribution, attention pattern analysis, ablation studies)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a10.h7", ...]
+}
+```
+
+Expected: **L10.H7 as primary**, possibly 1-3 supporting heads.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (L10.H7 implements copy suppression).
+3. **Data** — Example text sequences showing repetition scenarios.
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit identification, direct logit attribution analysis, ablation results.
+6. **Analysis** — Whether findings support the hypothesis (negative logit contributions from L10.H7).
+7. **Next Steps** — Potential extensions (other suppression mechanisms, other models).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Visualizations: Logit attribution by head, attention patterns, suppression effect plots.
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Dataset Creation
+
+Create text sequences that test copy suppression:
+
+1. **Repetitive contexts**: Sentences with repeated words
+   ```
+   "The cat sat on the mat. The cat"
+   "She said she said she"
+   ```
+
+2. **Natural text**: Regular text where some tokens appear multiple times
+   ```
+   "In the beginning, there was nothing. In the end, there was everything."
+   ```
+
+3. **Minimum 100 examples** with varied repetition patterns
+
+### Model Loading
+
+```python
+from transformer_lens import HookedTransformer
+model = HookedTransformer.from_pretrained("gpt2-small")
+```
+
+### Key Metrics
+
+* **Direct Logit Attribution (DLA)**:
+  - For each head, compute its contribution to each token's logit
+  - Focus on L10.H7's contribution to previously seen tokens
+  - Should show **negative contributions** (suppression)
+
+* **Attention pattern analysis**:
+  - Visualize L10.H7's attention pattern
+  - Check if it attends uniformly to context (averaging) or specifically to certain positions
+
+* **Ablation experiment**:
+  - Remove L10.H7 and measure increase in repetition
+  - Metric: How often model predicts recently seen tokens
+
+* **Suppression strength**:
+  - Measure logit reduction for tokens at different distances
+  - Plot: Distance from current position vs. suppression strength
+
+### Expected Circuit Properties
+
+* **L10.H7 is primary**: Strongest negative effect on token logits
+* **Negative OV circuit**: W_OV matrix has specific structure for suppression
+* **Distance-dependent**: Stronger suppression for closer tokens
+* **Universal**: Works across different text domains and contexts
+
+### Analysis Techniques
+
+1. **Direct Logit Attribution**:
+   ```python
+   # For each head, compute contribution to final logits
+   head_output = cache[f"blocks.{layer}.attn.hook_result"][:, :, head, :]
+   head_logits = head_output @ model.W_U
+   # Analyze which tokens get negative contributions
+   ```
+
+2. **Attention Pattern Visualization**:
+   ```python
+   # Visualize L10.H7 attention
+   attention = cache["blocks.10.attn.hook_pattern"][:, 7, :, :]
+   # Check for uniform or position-specific patterns
+   ```
+
+3. **Ablation**:
+   ```python
+   # Zero out L10.H7 and measure repetition increase
+   def ablate_head(activation, hook):
+       activation[:, :, 7, :] = 0
+       return activation
+   ```

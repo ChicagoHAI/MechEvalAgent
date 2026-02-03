@@ -1,0 +1,167 @@
+## Large Circuit Tracing Experiment — Sarcasm Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** loaded via **HookedTransformer**.
+* Use dataset: synthetic or real sarcasm-labeled sentences.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify a **precise circuit**—a subset of attention heads and MLPs—that reproduces the model’s **sarcasm recognition behavior**.
+
+The focus is on **how the model internally resolves conflict between literal content and intended meaning**.
+
+---
+
+### TASK DESCRIPTION
+
+Sentences in the sarcasm dataset typically contain **conflicting cues** between surface meaning and pragmatic intent.
+
+Example:
+
+> “Oh great, another meeting at 7 AM.”
+
+Although the surface sentiment is positive, the intended meaning is negative. This is an example. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* Literal semantic content.
+* Contextual or pragmatic cues.
+* Resolution of incongruity between wording and intent.
+
+Your job is to discover **the internal mechanism** by which the model performs this resolution.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative workflow**.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **how sarcasm recognition might be implemented internally**.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What behavioral distinction you aim to localize.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate mechanistic interpretability methods**, such as (but not limited to):
+
+   * Probing
+   * Activation patching
+   * Causal interventions
+   * Representation analysis
+   * Controlled counterfactual inputs
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Sarcastic vs. literal sentence pairs
+   * Minimal edits that preserve wording but change intent
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you identify a **minimal, interpretable circuit** that reliably reproduces sarcasm recognition behavior.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* Only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+**Final Circuit File**
+
+```json
+{
+  "nodes": ["{example sarcastic sentence}", "a?.h?", "m?", ...]
+}
+```
+
+Validation:
+
+* All nodes are in `src_nodes`.
+* Naming is consistent.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — Description of the sarcasm recognition behavior studied.
+2. **Data** — Example sarcastic and non-sarcastic sentences.
+3. **Method** — Experiments performed and why they are informative.
+4. **Results** — Final circuit and behavioral effects.
+5. **Analysis** — How the circuit supports sarcasm recognition.
+6. **Next Steps** — Open questions and limitations.
+7. **Main Takeaways** — What this reveals about pragmatic language processing.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations of internal signal flow.

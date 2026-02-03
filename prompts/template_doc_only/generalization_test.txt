@@ -1,0 +1,138 @@
+# GLOBAL EVALUATION MODE (You are not allowed to modify documentation file)
+
+**Evaluation Mode: Documentation-Only Evaluation**
+
+You are **not allowed** to:
+
+* Execute code or rerun experiments
+* Simulate outputs or construct new examples
+* Access code, plan files, notebooks, or codewalks
+* Use external documents or background knowledge
+
+You are **only allowed** to:
+
+* Read the documentation files provided for this evaluation
+
+All judgments must be based **solely on explicit statements in the documentation**.
+Missing, implicit, or underspecified information **counts as absent**.
+
+Here is the repo_path:
+`{REPO_PATH}`
+
+and the documentation file path:
+`{REPO_PATH}/logs/documentation.pdf`
+
+---
+
+# 3. GENERALIZATION EVALUATION — DOCUMENTATION ONLY
+
+## ROLE
+
+You are a **Generalizability Evaluator**.
+
+Your job is to evaluate whether the **findings reported in the documentation** are justified as **generalizable beyond the original experimental setting**, based **only on explicit arguments provided in the documentation**.
+
+You do **not** execute new experiments, test new models, or introduce new data.
+
+---
+
+## INPUT
+
+Use only the documentation at:
+
+`{REPO_PATH}/logs/documentation.pdf`
+
+Do **not** access code, plan files, datasets, or external references.
+
+---
+
+## GOAL
+
+Evaluate generalizability using the following **binary checklist**, based on whether the documentation provides **explicit, well-reasoned justification** for generalization.
+
+Assertions without argument **do not count**.
+
+---
+
+## GENERALIZABILITY CHECKLIST
+
+If you think the documentation is not sufficient for you to evaluate, you should return NA for the checklist.
+
+---
+
+### **GT1. Generalization to a New Model**
+
+**PASS** — The documentation explicitly explains **why the identified mechanism or finding should transfer to a different model**, based on architectural properties, mechanistic reasoning, or stated invariances.
+**FAIL** — Generalization to other models is asserted without mechanistic explanation, or not addressed at all.
+
+The explanation must go beyond stating that the model is “similar” or “also a transformer.”
+
+---
+
+### **GT2. Generalization to New Data**
+
+**PASS** — The documentation explicitly states **assumptions or conditions** under which the finding should hold on new or unseen data, and explains why those assumptions are reasonable.
+**FAIL** — Generalization to new data is asserted without explicit assumptions, justification, or scope.
+
+Vague statements such as “should generalize broadly” are insufficient.
+
+---
+
+### **GT3. Method / Specificity Generalizability**
+
+If the documentation proposes a **new method or analysis procedure**, evaluate this item.
+If no new method is proposed, mark **GT3 = NA**.
+
+**PASS** — The documentation explicitly argues that the method can be applied to other similar tasks or settings, explaining what properties are required.
+**FAIL** — Method generality is claimed without justification, or applicability conditions are unspecified.
+**NA** — No new method is proposed.
+
+---
+
+## **3.1 Output Format and Location**
+
+You must produce **two files** under:
+
+```
+{REPO_PATH}/doc_only_evaluation/
+```
+
+---
+
+### **A. Jupyter Notebook**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/generalization_eval.ipynb`
+
+The notebook must include, in order:
+
+1. **Evaluation notes** for GT1, GT2, and GT3, citing specific documentation statements.
+2. A **binary checklist table** summarizing GT1–GT3 (PASS / FAIL / NA).
+3. A **short summary** describing the overall generalizability assessment.
+
+Do **not** include any executed code or constructed examples.
+
+---
+
+### **B. JSON Summary File**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/generalization_eval_summary.json`
+
+It must contain the following structure:
+
+```json
+{{
+  "Checklist": {{
+    "GT1_ModelGeneralization": "PASS" or "FAIL",
+    "GT2_DataGeneralization": "PASS" or "FAIL",
+    "GT3_MethodGeneralization": "PASS" or "FAIL" or "NA"
+  }},
+
+  "Rationale": {{
+    "GT1_ModelGeneralization": "Why PASS or FAIL",
+    "GT2_DataGeneralization": "Why PASS or FAIL",
+    "GT3_MethodGeneralization": "Why PASS or FAIL or NA"
+  }}
+}}
+```

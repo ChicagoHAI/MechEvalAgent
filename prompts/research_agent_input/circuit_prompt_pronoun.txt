@@ -1,0 +1,271 @@
+# Large Circuit Tracing Experiment — Gendered Pronoun Resolution Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** loaded via **HookedTransformer**.
+* Use dataset: Sentences with gendered pronouns requiring coreference resolution.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify the **gendered pronoun resolution circuit** that correctly resolves pronouns like "he" or "she" to their antecedents based on gender agreement, revealing mechanisms similar to but distinct from IOI.
+
+---
+
+### TASK DESCRIPTION
+
+Gendered pronoun resolution requires identifying the correct antecedent based on grammatical gender.
+
+Example:
+```
+"The nurse prepared the medication. She ___"  → Predict "she" refers to "nurse"
+"The doctor arrived early. He ___"            → Predict "he" refers to "doctor"
+```
+
+* The model must track **multiple entities** with different genders.
+* Must apply **gender agreement** (masculine pronoun → masculine antecedent).
+* Must handle **stereotypical** and **counter-stereotypical** associations.
+
+This task is related to IOI but:
+* Uses **gender** as the selection criterion (not position/syntax)
+* Tests **bias** (stereotypical gender-occupation associations)
+* Reveals different attention patterns
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The gendered pronoun resolution circuit is hypothesized to include:
+
+1. **Gender Detection Heads**
+
+   * Identify gendered entities (nouns with implicit or explicit gender).
+   * Encode gender information in the residual stream.
+   * Active at positions of gendered nouns (e.g., "nurse", "doctor").
+
+2. **Pronoun Matching Heads**
+
+   * Active at pronoun positions ("he", "she").
+   * Attend to previous gendered entities.
+   * Use gender agreement to select the correct antecedent.
+
+3. **Name/Entity Copying Heads**
+
+   * Copy information about the selected antecedent.
+   * Similar to Name-Mover Heads in IOI.
+   * Write the antecedent representation to predict next tokens.
+
+**Potential differences from IOI**:
+* Gender information may be encoded in MLP layers
+* May involve more layers due to implicit gender (stereotypes)
+* May show bias toward stereotypical associations
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a0.h11','m0',
+  'a1.h0',...,'a1.h11','m1',
+  'a2.h0',...,'a2.h11','m2',
+  'a3.h0',...,'a3.h11','m3',
+  'a4.h0',...,'a4.h11','m4',
+  'a5.h0',...,'a5.h11','m5',
+  'a6.h0',...,'a6.h11','m6',
+  'a7.h0',...,'a7.h11','m7',
+  'a8.h0',...,'a8.h11','m8',
+  'a9.h0',...,'a9.h11','m9',
+  'a10.h0',...,'a10.h11','m10',
+  'a11.h0',...,'a11.h11','m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* Each MLP writes `d_model` dimensions.
+* **Total writes ≤ 11,200** (same budget as IOI for comparison).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (gender-based attention mechanism)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., activation patching, attention pattern analysis, counterfactual testing)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a3.h2", "a7.h10", "m5", ...]
+}
+```
+
+Check that:
+
+* All nodes are in `src_nodes`.
+* Total writes ≤ 11,200.
+* Naming is consistent.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (gender-based pronoun resolution heads).
+3. **Data** — Example pronoun resolution sentences (stereotypical and counter-stereotypical).
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit list, gender detection evidence, attention pattern analysis.
+6. **Analysis** — Whether findings support the hypothesis and whether stereotypical bias is evident.
+7. **Next Steps** — Potential extensions (other pronoun types, bias mitigation).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Visualizations: Attention patterns, gender encoding, stereotype analysis.
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Dataset Creation
+
+Create sentences testing pronoun resolution:
+
+1. **Stereotypical cases** (gender matches occupation stereotype):
+   ```
+   "The nurse checked the patient. She prepared the medication."
+   "The engineer reviewed the plans. He made corrections."
+   ```
+
+2. **Counter-stereotypical cases** (gender opposes stereotype):
+   ```
+   "The male nurse checked the patient. He prepared the medication."
+   "The female engineer reviewed the plans. She made corrections."
+   ```
+
+3. **Minimal pairs** (differ only in pronoun):
+   ```
+   "The teacher arrived. He/She ___"
+   "The doctor called. He/She ___"
+   ```
+
+4. **Multiple entities** (disambiguation needed):
+   ```
+   "The nurse and the doctor arrived. The nurse prepared equipment. She ___"
+   ```
+
+* **Minimum 100 examples**: 50 stereotypical, 50 counter-stereotypical
+* **Balance gender**: Equal male/female examples
+
+### Model Loading
+
+```python
+from transformer_lens import HookedTransformer
+model = HookedTransformer.from_pretrained("gpt2-small")
+```
+
+### Key Metrics
+
+* **Pronoun resolution accuracy**:
+  - Does model predict correct antecedent?
+  - Compare stereotypical vs. counter-stereotypical accuracy (bias metric)
+
+* **Activation patching**:
+  - Identify which heads are necessary for correct resolution
+  - Test if same heads handle stereotypical and counter-stereotypical cases
+
+* **Attention patterns**:
+  - Do pronoun-position heads attend to gendered entities?
+  - Is attention stronger for stereotype-congruent entities?
+
+* **Gender encoding**:
+  - Can gender be decoded from intermediate activations?
+  - Which layers encode gender information?
+
+### Expected Circuit Properties
+
+* **Overlaps with IOI**: May share some Name-Mover heads
+* **Additional gender mechanism**: Heads/MLPs that encode/use gender
+* **Stereotype bias**: Stronger attention to stereotype-congruent antecedents
+* **Multi-stage**: Gender detection → Matching → Copying
+
+### Analysis Techniques
+
+1. **Counterfactual Patching**:
+   ```python
+   # Swap pronouns and measure which heads are affected
+   original = "The nurse prepared medicine. She ___"
+   counterfactual = "The nurse prepared medicine. He ___"
+   # Patch activations and measure impact
+   ```
+
+2. **Gender Probe**:
+   ```python
+   # Train linear probe to decode gender from activations
+   # Identify which layers/heads encode gender
+   ```
+
+3. **Stereotype Analysis**:
+   ```python
+   # Compare attention to stereotypical vs. counter-stereotypical antecedents
+   stereotype_strength = attention_to_stereotype - attention_to_counter
+   ```
+
+### Comparison to IOI
+
+Document:
+* **Circuit overlap**: Which heads are shared with IOI circuit?
+* **Unique components**: Which heads are specific to pronoun resolution?
+* **Complexity**: Is this circuit larger/smaller than IOI?
+* **Bias**: Does IOI show positional bias while this shows gender bias?

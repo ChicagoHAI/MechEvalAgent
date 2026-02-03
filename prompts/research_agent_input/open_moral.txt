@@ -1,0 +1,194 @@
+## Mechanistic Analysis Experiment — Moral Valence vs. Outcome Valence
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** or **gpt2-medium**, loaded via **HookedTransformer**.
+* Use dataset: **minimal-pair moral judgment prompts**, including:
+
+  * Actions with similar surface structure but different moral motivations,
+  * Actions with similar outcomes but different moral intent,
+  * Controls separating intent, outcome, and consequence severity.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Understand whether the model **internally distinguishes moral valence from outcome valence**.
+
+Specifically, determine whether the model represents:
+
+* **Moral valence** — whether an action is judged as morally good or bad,
+* **Outcome valence** — whether the consequences are beneficial or harmful,
+
+as **separable internal factors**, or whether they are conflated into a single evaluative signal.
+
+This project may, but does not have to, result in identifying a localized circuit.
+
+---
+
+### TASK DESCRIPTION
+
+Some actions have similar surface forms and outcomes but differ in **moral justification**.
+
+Minimal pairs:
+
+**Protective intent**
+
+> “He lied to protect his friend. This was ___”
+
+**Selfish intent**
+
+> “He lied to steal money. This was ___”
+
+In both cases, the action (“lied”) is the same, but the **moral assessment differs** due to intent and consequences. In the example, we expect the model to answer this behavior is morally good or bad. Those are examples. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* Whether intent and outcome are represented independently.
+* How moral judgment interacts with consequence severity.
+* Whether moral evaluations emerge early or late in computation.
+* Whether models encode moral norms distinct from outcome prediction.
+
+Your job is to investigate **how moral evaluation is computed internally**, and whether moral and outcome valence are separable.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative research workflow** with explicit hypothesis formation and revision.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **how moral and outcome valence might be represented internally**.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What internal distinctions you expect to observe.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate analysis methods**, including but not limited to:
+
+   * Probing for moral vs. outcome-related signals
+   * Activation patching across intent-contrasting prompts
+   * Causal interventions on candidate components
+   * Representation similarity analysis
+   * Controlled manipulations of intent and consequence independently
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Same outcome, different intent
+   * Same intent, different outcomes
+   * Neutral actions vs. morally charged actions
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you reach a stable explanation, which may be:
+
+   * A **localized circuit** distinguishing moral vs. outcome valence, or
+   * A **distributed evaluative process** without a single point of separation.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+(Use only if circuit-level analysis is appropriate.)
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* If proposing a circuit, only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+Depending on findings, one of the following (or both):
+
+**Circuit File (if applicable)**
+
+```json
+{
+  "nodes": ["{example moral judgment prompt}", "a?.h?", "m?", ...]
+}
+```
+
+or
+
+**Process Description**
+
+A written account of how moral judgment and outcome evaluation are computed and interact internally.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — What moral vs. outcome valence means in this study.
+2. **Data** — Example prompts and contrasts.
+3. **Method** — Experiments performed and rationale.
+4. **Results** — Behavioral and internal distinctions observed.
+5. **Analysis** — Whether moral and outcome valence are separable.
+6. **Next Steps** — Open questions and limitations.
+7. **Main Takeaways** — What this reveals about evaluative reasoning in language models.
+
+---
+
+### OUTPUT SUMMARY
+
+* Optional `real_circuits_1.json` — if a circuit is identified.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations of internal representations for moral vs. outcome evaluation.

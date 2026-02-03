@@ -1,0 +1,139 @@
+# GLOBAL EVALUATION MODE (You are not allowed to execute code)
+
+**Evaluation Mode: Read-Only Replication Evaluation (No Execution)**
+
+You are **not allowed** to:
+
+* Execute code or rerun experiments
+* Write or run new code to verify results
+* Simulate outputs or construct test cases
+
+You are **allowed** to:
+
+* Read all files under the repository
+* Inspect plan files, codewalks, source code, and documentation
+* Reason about replicability by **static inspection only**
+
+All judgments must be based **solely on explicit information available in the repository**.
+If replication would require guessing missing details or observing runtime behavior, it **must be marked as FAIL**.
+
+Here is the repo_path:
+`{REPO_PATH}`
+
+---
+
+# 4. REPLICATION EVALUATION
+
+## ROLE
+
+You are an **independent replication evaluator**.
+
+Your task is to determine whether the experiment described in the repository can be **faithfully reconstructed by a third party**, **without executing the original code**, based only on the information provided.
+
+You do **not** attempt replication.
+You only evaluate whether replication is **possible in principle**.
+
+---
+
+## MATERIALS YOU MAY READ
+
+You may read **all materials under the REPO**:
+
+`{REPO_PATH}`
+
+This includes (if present):
+
+* Plan file
+* Codewalk file
+* Source code
+* Documentation
+
+You must **not** rely on execution or runtime outputs.
+
+---
+
+## GOAL
+
+Evaluate replicability using the following **binary checklist**, based strictly on **information sufficiency and clarity**.
+
+If faithful replication would require assumptions, missing details, or execution-dependent behavior, mark **FAIL**.
+
+---
+
+## REPLICATION CHECKLIST — BINARY
+
+---
+
+### **RP1. Implementation Reconstructability**
+
+**PASS** — The repository describes the experimental procedure, analysis steps, and evaluation logic with enough operational detail that an independent researcher could reimplement the experiment step-by-step without guesswork, based on static inspection alone.
+**FAIL** — Critical steps, ordering, logic, or implementation details are missing, ambiguous, or only implicitly specified.
+
+High-level descriptions without operational detail are insufficient.
+
+---
+
+### **RP2. Environment Reproducibility**
+
+**PASS** — The repository explicitly specifies required models, datasets, configurations, and key dependencies, including versions or acquisition methods, such that the environment can be reconstructed without trial-and-error.
+**FAIL** — One or more required resources are missing, ambiguous, underspecified, or depend on unstated defaults.
+
+Statements like “standard setup” or “default parameters” without definition are insufficient.
+
+---
+
+### **RP3. Determinism and Stability**
+
+**PASS** — The repository explicitly addresses sources of nondeterminism (e.g., random seeds, sampling, stochastic components) and explains how stability is ensured or how variability is interpreted.
+**FAIL** — Randomness, nondeterminism, or result instability is unaddressed or left implicit.
+
+---
+
+## **4.1 Output Format and Location**
+
+You must produce **two files** under:
+
+```
+{REPO_PATH}/no_exe_evaluation/replications/
+```
+
+---
+
+### **A. Evaluation File**
+
+**Path:**
+`{REPO_PATH}/no_exe_evaluation/replications/no_exe_evaluation_replication.md`
+*(or `.ipynb` if preferred for consistency)*
+
+The file must include, in order:
+
+1. **Evaluation notes** for RP1–RP3, explicitly stating what information is sufficient or missing.
+2. A **binary checklist table** covering RP1–RP3.
+3. A **short summary** describing overall replicability under read-only inspection.
+
+Do **not** include executed code or inferred details.
+
+---
+
+### **B. JSON Summary File**
+
+**Path:**
+`{REPO_PATH}/no_exe_evaluation/replications/self_replication_evaluation.json`
+
+It must contain the following structure:
+
+```json
+{{
+  "Checklist": {{
+    "RP1_ImplementationReconstructability": "PASS" or "FAIL",
+    "RP2_EnvironmentReproducibility": "PASS" or "FAIL",
+    "RP3_DeterminismAndStability": "PASS" or "FAIL"
+  }},
+
+  "Rationale": {{
+    "RP1_ImplementationReconstructability": "Why PASS or FAIL",
+    "RP2_EnvironmentReproducibility": "Why PASS or FAIL",
+    "RP3_DeterminismAndStability": "Why PASS or FAIL"
+  }}
+}}
+```

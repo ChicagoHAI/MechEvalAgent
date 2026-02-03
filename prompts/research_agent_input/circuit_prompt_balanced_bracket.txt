@@ -1,0 +1,225 @@
+# Large Circuit Tracing Experiment — Balanced Bracket Classifier Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **3-layer transformer** trained on bracket classification (available via TransformerLens or train from scratch).
+* Use dataset: Sequences of parentheses/brackets to classify as balanced or unbalanced.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify the **balanced bracket classifier circuit** that determines whether a sequence of brackets is properly nested, revealing how the model implements a **depth-tracking algorithm**.
+
+---
+
+### TASK DESCRIPTION
+
+The model classifies bracket sequences as balanced (valid) or unbalanced (invalid).
+
+Examples:
+```
+Valid:   "()", "(())", "()()", "((()))"
+Invalid: "(()", "())", ")(", "((("
+```
+
+* **Valid**: Every opening bracket has a matching closing bracket, properly nested.
+* **Invalid**: Mismatched, out-of-order, or incomplete brackets.
+
+The task requires:
+* Tracking **nesting depth** (how many unclosed brackets)
+* Detecting **negative depth** (closing bracket without matching opening)
+* Verifying **final depth is zero**
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The balanced bracket circuit implements a **depth counter** using attention heads:
+
+1. **Opening Bracket Heads**
+
+   * Detect opening brackets "(" or "[" or "{".
+   * Increment an internal depth counter.
+   * Write a positive value to the residual stream.
+
+2. **Closing Bracket Heads**
+
+   * Detect closing brackets ")" or "]" or "}".
+   * Decrement the depth counter.
+   * Write a negative value to the residual stream.
+
+3. **Depth Tracker / Validator Heads**
+
+   * Monitor cumulative depth across the sequence.
+   * Detect violations (negative depth at any point).
+   * Check final depth equals zero.
+
+**Mechanism**: The model maintains a running count of nesting depth using residual stream position, similar to a finite state machine.
+
+---
+
+### SRC_NODES
+
+For a 3-layer transformer with 4 heads per layer:
+
+```
+[
+  'input',
+  'a0.h0','a0.h1','a0.h2','a0.h3','m0',
+  'a1.h0','a1.h1','a1.h2','a1.h3','m1',
+  'a2.h0','a2.h1','a2.h2','a2.h3','m2'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* Each MLP writes `d_model` dimensions.
+* **No budget constraint specified** (focus on identifying the depth-tracking mechanism).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (depth-tracking heads for bracket validation)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., activation analysis, attention patterns, ablation studies)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a0.h1", "a1.h2", "a2.h0", "m1"]
+}
+```
+
+Expected: **3-6 heads** plus possibly 1-2 MLPs for depth computation.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (depth counter implementation using attention heads).
+3. **Data** — Example bracket sequences (valid and invalid) and structure.
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit list, depth tracking evidence, head behavior analysis.
+6. **Analysis** — Whether findings support the hypothesis (clear up/down counting mechanism).
+7. **Next Steps** — Potential extensions (multiple bracket types, nested structures).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Visualizations: depth tracking over sequence, attention patterns, activation flows.
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Model and Dataset Options
+
+**Option 1: Use existing model from ARENA**
+```python
+# The ARENA curriculum includes this model
+# Check if available in TransformerLens
+```
+
+**Option 2: Train from scratch (recommended)**
+```python
+# Train a 3-layer transformer on bracket classification
+# Small model: d_model=32-64, n_heads=4
+# Training: ~5-10 minutes on CPU
+```
+
+### Dataset Creation
+
+Generate balanced bracket dataset:
+```python
+def generate_brackets(max_depth=5, max_length=20, num_examples=10000):
+    examples = []
+
+    # Valid examples
+    for _ in range(num_examples // 2):
+        seq = generate_balanced_sequence(max_depth)
+        examples.append({"seq": seq, "label": "valid"})
+
+    # Invalid examples (various types)
+    for _ in range(num_examples // 2):
+        seq = generate_unbalanced_sequence(max_length)
+        examples.append({"seq": seq, "label": "invalid"})
+
+    return examples
+```
+
+Invalid types to include:
+* Extra closing: "(())"
+* Extra opening: "((("
+* Wrong order: ")("
+* Interleaved: "([)]" (if using multiple bracket types)
+
+### Key Metrics
+
+* **Classification accuracy**: >95% on validation set
+* **Depth tracking**:
+  - Extract hidden states at each position
+  - Plot cumulative depth representation
+  - Verify it matches true bracket depth
+* **Attention patterns**:
+  - Opening bracket heads attend to future closings
+  - Closing bracket heads attend to past openings
+* **Ablation impact**: Removing depth-tracking heads should break classification
+
+### Expected Circuit Properties
+
+* **Position-dependent behavior**: Different heads track depth at different stages
+* **Cumulative computation**: Later positions aggregate information from earlier
+* **Binary decision**: Final position determines classification
+* **Interpretable activations**: Hidden states should encode depth count
+

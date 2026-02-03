@@ -1,0 +1,211 @@
+# Large Circuit Tracing Experiment — Max-of-K Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **1-layer attention-only transformer** trained on max-finding task.
+* Use dataset: Lists of integers, task is to identify the maximum value.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Reverse-engineer the **max-finding circuit** that identifies the largest value in a sequence using the **Query-Key attention mechanism**, demonstrating a formally verifiable algorithmic implementation.
+
+---
+
+### TASK DESCRIPTION
+
+The model is given a list of integers and must identify/predict the maximum value.
+
+Example:
+```
+Input:  [3, 7, 2, 9, 1, 5]
+Output: 9
+```
+
+* Simple task but reveals fundamental mechanism: **attention as comparison**.
+* The circuit uses attention weights to implement `argmax` operation.
+* This is a case study in **compact proofs** of model behavior (formally verifiable).
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The max-finding circuit uses **attention scores as value comparisons**:
+
+1. **Embedding Layer**
+
+   * Encodes each integer as a vector in embedding space.
+   * Embedding magnitude correlates with integer value.
+
+2. **Attention Head(s)**
+
+   * **Query**: Represents "looking for maximum".
+   * **Key**: Represents "this is my value".
+   * **Attention score = Q · K**: Higher for larger values.
+   * The position with the highest value gets the highest attention weight.
+
+3. **Value Vectors & Output**
+
+   * Value vectors encode the integer identity.
+   * Weighted sum (via attention) selects the maximum value's representation.
+   * Unembedding produces the maximum integer.
+
+**Key insight**: The model learns to make **Key embeddings proportional to integer magnitude**, so the attention mechanism implements `argmax` via dot product comparison.
+
+---
+
+### SRC_NODES
+
+For a 1-layer attention-only model with 1 head:
+
+```
+[
+  'input',
+  'a0.h0'
+]
+```
+
+Expected: **Single attention head** may be sufficient for clean implementation.
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* The attention head writes `d_model / n_heads` dimensions.
+* **No budget constraint specified** (focus on verifying the algorithmic mechanism).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}` or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (attention-as-comparison for max-finding)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., QK circuit analysis, embedding inspection, attention weight analysis)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a0.h0"]
+}
+```
+
+Expected: **Minimal circuit** - possibly just input + single attention head.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (QK attention implements value comparison).
+3. **Data** — Example max-finding problems and structure.
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit analysis, QK matrix structure, embedding analysis.
+6. **Analysis** — Whether findings support the hypothesis (linear relationship between value and key magnitude).
+7. **Next Steps** — Potential extensions (min-finding, k-th largest, multiple data types).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Visualizations: QK matrix heatmap, embedding magnitude vs. integer value, attention weight distribution.
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Model and Dataset
+
+**Train a simple 1-layer model**:
+```python
+# Small model: d_model=32, n_heads=1, context_length=10
+# Vocab: integers 0-99
+# Train on sequences of length 5-10
+```
+
+### Dataset Creation
+
+Generate max-finding dataset:
+```python
+import random
+
+def generate_max_dataset(num_examples=10000, seq_len_range=(5, 10), value_range=(0, 99)):
+    dataset = []
+    for _ in range(num_examples):
+        seq_len = random.randint(*seq_len_range)
+        sequence = [random.randint(*value_range) for _ in range(seq_len)]
+        max_val = max(sequence)
+        dataset.append({"input": sequence, "output": max_val})
+    return dataset
+```
+
+* **Size**: 10,000 examples
+* **Sequence length**: 5-10 integers
+* **Value range**: 0-99
+* **Format**: List of integers → single integer (max)
+
+### Key Metrics
+
+* **Accuracy**: Should achieve >99% on finding max
+* **QK circuit analysis**:
+  - Extract W_Q and W_K matrices
+  - Verify that larger values produce larger key vectors
+  - Plot: `||K(value)||` vs `value` (should be linear or monotonic)
+* **Attention pattern analysis**:
+  - For each example, check if attention focuses on max value position
+  - Measure: argmax(attention weights) == argmax(values)
+* **Formal verification** (optional):
+  - Prove mathematically that the learned circuit implements max
+  - Use compact proof framework from Gross et al. 2024
+
+### Expected Circuit Properties
+
+* **Clean mechanism**: Embedding magnitude encodes value magnitude
+* **Verifiable**: Can formally prove circuit computes max under certain conditions
+* **Minimal**: Single attention head sufficient (though model may use multiple)
+* **Generalizes**: Works on out-of-distribution sequence lengths and value ranges
+

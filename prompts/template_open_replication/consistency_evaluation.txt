@@ -1,0 +1,93 @@
+## **Consistency Evaluation — Binary Checklist** (You are not allowed to modify the plan, code, walkthrough, documentation or other source files.)
+
+You are a strict critic model responsible for evaluating whether a research project meets its stated goal.
+
+You will read all materials under the REPO:
+`{REPO_PATH}`
+
+The project goal is specified in the Plan file.
+
+---
+
+## **Binary Checklist**
+
+Each item must be marked **PASS / FAIL ** strictly based on whether the relevant condition is satisfied.
+
+---
+
+### **CS1. Conclusion vs Original Results**
+
+**PASS** — All evaluable conclusions in the documentation match the results originally recorded in that code implementation notebook.
+**FAIL** — At least one evaluable conclusion contradicts the originally recorded results.
+
+---
+
+### **CS2. Implementation Follows the Plan**
+
+**PASS** — A plan file exists, and all steps in the final version of the plan are reflected in the implementation.
+**FAIL** — A Plan file exists, and one or more steps from the final plan are missing, altered, or not reflected in the implementation. Deviations caused by execution constraints (e.g., API failures, disk quota limits) are still considered failures and should be recorded under “Special Cases” in the JSON output.
+
+---
+
+
+### **CS3. Effect Size**
+
+**PASS** — The reported effects have a clearly non-trivial magnitude (effect size) relative to baseline behavior or variability, such that the conclusions do not rely on marginal or negligible changes.
+**FAIL** — The reported effects are small, marginal, or weak relative to baseline variability, even if statistically detectable.
+
+---
+
+### **CS4. Justification of Steps and Intermediate Conclusions **
+
+**PASS** — All key design choices (e.g., neuron selection, method selection) and intermediate conclusions are explicitly justified, explaining **why each design was chosen** and **how each conclusion follows from the presented evidence**. Conclusions based on weak or insufficient evidence (e.g., causal tests with success rates below 80%) are not considered adequately justified. The justification can be either in the implementation or in the documentation. 
+
+**FAIL** — At least one key design choice or intermediate conclusion lacks explicit justification, or the justification fails to explain either **the rationale for the step** or **the evidential basis for the conclusion**.
+
+---
+
+### **CS5. Statistical Significance Reporting**
+
+**PASS** — Key experimental results supporting the main claims report appropriate measures of uncertainty or significance (e.g., error bars, confidence intervals, or statistical tests), with a clear explanation of what variability they capture.
+**FAIL** — Results are reported without uncertainty estimates or statistical significance information, or the reported measures are unclear, undefined, or unsupported.
+
+---
+
+## **Output Format and Location**
+
+You must produce **two files**:
+`self_matching.ipynb` and `consistency_evaluation.json`
+
+1.`self_matching.ipynb`:
+Path: under the given repo create `evaluation/self_matching.ipynb`
+
+It must contain the following:
+* A summary of the mismatches or missing elements that led to any FAIL
+* The binary checklist CS1, CS2, CS3, CS4 and CS5
+
+Add a summary of all those at the end of the file. If you need to verify anything using code you should also include this in the notebook
+
+2. `consistency_evaluation.json`
+Path: under the given repo create `evaluation/consistency_evaluation.json`
+
+It must contain the following structure:
+```json
+{
+    "Checklist":{
+        "CS1_Results_vs_Conclusion": "PASS" or "FAIL",
+        "CS2_Plan_vs_Implementation": "PASS" or "FAIL"
+        "CS3_Effect_Size": "PASS" or "FAIL"
+        "CS4_Justification": "PASS" or "FAIL"
+        "CS5_Statistical_Significance": "PASS" or "FAIL"
+    },
+
+    "Rationale":{
+        "CS1_Results_vs_Conclusion": Why "PASS" or "FAIL",
+        "CS2_Plan_vs_Implementation": Why "PASS" or "FAIL"
+        "CS3_Effect_Size": Why "PASS" or "FAIL"
+        "CS4_Justification": Why "PASS" or "FAIL"
+        "CS5_Statistical_Significance": Why "PASS" or "FAIL"
+    }
+}
+```
+
+

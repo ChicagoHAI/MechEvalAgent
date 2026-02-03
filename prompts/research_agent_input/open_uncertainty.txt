@@ -1,0 +1,184 @@
+Below is a **clean, self-contained prompt** in the same style as your revised ones.
+No IOI references, no prescriptive mechanisms, no method lock-in.
+
+---
+
+## Large Circuit Tracing Experiment — Uncertainty Representation
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **Llama 3B** or **Qwen 3B** (or smaller variants).
+* Use dataset: **questions or prompts with graded uncertainty**, including:
+
+  * Inputs with clearly answerable outcomes,
+  * Inputs with ambiguous, underspecified, or conflicting information,
+  * Inputs where multiple answers are plausible.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify a **precise circuit**—a subset of attention heads and MLPs—that accounts for how the model **represents and uses uncertainty** during inference.
+
+The goal is to understand whether uncertainty is:
+
+* Explicitly represented,
+* Implicitly encoded in intermediate activations,
+* Or distributed across multiple components.
+
+---
+
+### TASK DESCRIPTION
+
+Uncertainty arises when the model cannot confidently determine a single outcome.
+
+Examples include:
+
+> “Who is the greatest scientist of all time?”
+> “What will the weather be like here next year?”
+> “Which answer is more likely given incomplete evidence?”
+
+In such cases, the model may hedge, provide multiple possibilities, lower confidence, or alter its response style. Those are examples. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* Internal signals correlating with epistemic uncertainty.
+* Differences in computation between confident and uncertain responses.
+* How uncertainty influences downstream decisions (e.g., hedging, abstention, probabilistic language).
+* Whether uncertainty is localized or distributed.
+
+Your job is to discover **the internal mechanism** that supports these behaviors.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative research workflow** with explicit hypothesis formation and revision.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **how uncertainty might be represented internally**.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What operational definition of uncertainty you are studying.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate mechanistic interpretability methods**, including but not limited to:
+
+   * Probing
+   * Activation patching
+   * Causal interventions
+   * Representation analysis
+   * Controlled perturbations of uncertainty in the input
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * High-certainty vs. low-certainty inputs,
+   * Minimal edits that increase or decrease ambiguity,
+   * Cases where uncertainty affects the form but not the content of the response.
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you identify a **minimal, interpretable circuit** that reliably accounts for uncertainty-related behavior.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* Only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+**Final Circuit File**
+
+```json
+{
+  "nodes": ["{example uncertain input}", "a?.h?", "m?", ...]
+}
+```
+
+Validation:
+
+* All nodes are in `src_nodes`.
+* Naming is consistent.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — What uncertainty means in this study.
+2. **Data** — Examples spanning different uncertainty levels.
+3. **Method** — Experiments performed and their motivation.
+4. **Results** — Final circuit and observed effects.
+5. **Analysis** — How uncertainty is represented and propagated.
+6. **Next Steps** — Open questions and limitations.
+7. **Main Takeaways** — What this reveals about uncertainty in language models.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations showing uncertainty-related signal flow.

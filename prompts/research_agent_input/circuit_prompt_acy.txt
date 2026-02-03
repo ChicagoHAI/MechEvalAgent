@@ -1,0 +1,154 @@
+# Large Circuit Tracing Experiment — Acronym Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** loaded via **HookedTransformer**.
+* Use dataset: **Acronym Dataset**, consisting of both *definition-first (DF)* and *acronym-first (AF)* patterns.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify a **precise circuit**—a subset of attention heads and MLPs—that reproduces the model’s **acronym behavior** (recognizing and linking between acronyms and their expanded forms) **as faithfully as possible**, subject to a strict **residual write-budget constraint**.
+
+---
+
+### TASK DESCRIPTION
+
+Each example contains both an acronym (**ACR**) and its expanded definition (**DEF**):
+
+* **Definition-First (DF):** “The *National Aeronautics and Space Administration* (**NASA**) launched the rocket.”
+* **Acronym-First (AF):** “**NASA** (*National Aeronautics and Space Administration*) launched the rocket.”
+
+The model must link DEF ↔ ACR, correctly identifying which tokens correspond between the expanded and abbreviated forms.
+Evaluation focuses on whether the model’s predictions reflect that link — for instance, favoring correct acronym completions or correct expansion tokens.
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The Acronym Circuit is hypothesized to include four classes of components:
+
+1. **Boundary Heads**
+
+   * Detect parentheses and boundary markers, encoding DEF–ACR span structure.
+
+2. **Initial-Letter Mapping (ILM) Heads**
+
+   * Connect acronym letters to the initial subword tokens of DEF words.
+
+3. **Disambiguation Heads**
+
+   * Select the correct DEF span when multiple candidate expansions are present.
+
+4. **Span-Mover Heads / MLPs**
+
+   * Copy or reinforce character/word identity information between DEF and ACR spans.
+
+Together, these components support consistent acronym expansion and recognition within both DF and AF contexts.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a0.h11','m0',
+  'a1.h0',...,'a1.h11','m1',
+  'a2.h0',...,'a2.h11','m2',
+  'a3.h0',...,'a3.h11','m3',
+  'a4.h0',...,'a4.h11','m4',
+  'a5.h0',...,'a5.h11','m5',
+  'a6.h0',...,'a6.h11','m6',
+  'a7.h0',...,'a7.h11','m7',
+  'a8.h0',...,'a8.h11','m8',
+  'a9.h0',...,'a9.h11','m9',
+  'a10.h0',...,'a10.h11','m10',
+  'a11.h0',...,'a11.h11','m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation.
+* Each attention head writes `d_model / n_heads` dimensions.
+* Each MLP writes `d_model` dimensions.
+* **Total writes ≤ 11,200.**
+* Only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_acronyms.json`:
+
+```json
+{
+  "nodes": ["input", "a3.h4", "m4", ...]
+}
+```
+
+Check that:
+
+* All nodes appear in `src_nodes`.
+* Total writes ≤ 11,200.
+* Naming matches required conventions.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+**Dataset:**
+
+* `data/acronyms/train.jsonl`
+* `data/acronyms/val.jsonl`
+* `data/acronyms/test.jsonl`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — Hypothesis and purpose of the acronym circuit search.
+2. **Data** — Example DF and AF sentences, including distractors.
+3. ***Method* - Methods used to do the research.
+4. **Results** — Final node list and evaluation metrics verifying correct acronym behavior.
+5. **Analysis** — Whether the circuit supports the hypothesized components and generalizes across examples.
+6. **Next Steps** — Potential follow-ups such as multilingual acronyms or nested parentheses.
+7. **Main Takeaways** - What the results implicates, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_acronyms.json` — final node list.
+* `logs/` — all markdown documentation.
+* `notebooks/` — supporting experiment notebooks.
+* Optional visualizations (e.g., attention to parentheses or acronym letters).
+

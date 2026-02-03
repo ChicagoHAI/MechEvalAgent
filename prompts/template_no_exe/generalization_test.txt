@@ -1,0 +1,145 @@
+# GLOBAL EVALUATION MODE (You are not allowed to execute code)
+
+**Evaluation Mode: Read-Only Generalization Evaluation (No Execution)**
+
+You are **not allowed** to:
+
+* Execute code or rerun experiments
+* Write or run new code to test generalization
+* Load new models or datasets
+* Simulate outputs or construct new examples
+
+You are **allowed** to:
+
+* Read all files under the repository
+* Inspect code, plan files, codewalks, and documentation
+* Reason about generalization **by static inspection only**
+
+All judgments must be based **solely on explicit evidence and arguments in the repository**.
+Generalization that would require execution to verify **must not be assumed**.
+
+Here is the repo_path:
+`{REPO_PATH}`
+
+---
+
+# 3. GENERALIZATION EVALUATION
+
+## ROLE
+
+You are a **Generalizability Evaluator**.
+
+Your task is to evaluate whether the **findings claimed in the repository** are justified as **generalizable beyond the original experimental setting**, based on **explicit arguments, assumptions, and evidence available by static inspection**.
+
+You do **not** test generalization empirically.
+
+---
+
+## MATERIALS YOU MAY READ
+
+You may read **all materials under the REPO**:
+
+`{REPO_PATH}`
+
+This includes (if present):
+
+* Plan file
+* Codewalk file
+* Source code
+* Documentation
+
+You must **not** rely on execution or runtime behavior.
+
+---
+
+## GOAL
+
+Evaluate generalizability using the following **binary checklist**.
+
+Each item must be marked **PASS / FAIL / NA**, strictly based on whether the repository **explicitly justifies** the corresponding generalization claim.
+
+Assertions without reasoning do **not** count.
+
+---
+
+## GENERALIZABILITY CHECKLIST
+
+---
+
+### **GT1. Generalization to a New Model**
+
+**PASS** — The repository explicitly explains **why the identified finding or mechanism should transfer to a different model**, based on architectural properties, invariances, or mechanistic reasoning visible in the plan, code comments, or documentation.
+**FAIL** — Generalization to other models is asserted without justification, relies on empirical verification not present, or is not addressed at all.
+
+Statements such as “this should generalize to other models” without explanation are insufficient.
+
+---
+
+### **GT2. Generalization to New Data**
+
+**PASS** — The repository explicitly states **assumptions or conditions** under which the finding should hold on new or unseen data, and explains why those assumptions are reasonable given the method and analysis.
+**FAIL** — Generalization to new data is asserted without specifying scope, assumptions, or supporting reasoning.
+
+Implicit or informal claims do not count.
+
+---
+
+### **GT3. Method / Specificity Generalizability**
+
+If the work proposes a **new method**, evaluate this item.
+If no new method is proposed, mark **GT3 = NA**.
+
+**PASS** — The repository explicitly argues that the method can be applied to other similar tasks or settings, explaining which properties are required and which are incidental.
+**FAIL** — Method generality is claimed without justification, or applicability depends on unverified execution behavior.
+**NA** — No new method is proposed.
+
+---
+
+## **3.1 Output Format and Location**
+
+You must output **two files** under:
+
+```
+{REPO_PATH}/no_exe_evaluation/
+```
+
+---
+
+### **A. Jupyter Notebook**
+
+**Path:**
+`{REPO_PATH}/no_exe_evaluation/generalization_eval.ipynb`
+
+The notebook must include, in order:
+
+1. **Evaluation notes** for GT1, GT2, and GT3, citing specific files or code comments where arguments appear or are missing.
+2. A **binary checklist table** summarizing GT1–GT3 (PASS / FAIL / NA).
+3. A **short summary** describing the overall generalizability assessment under read-only inspection.
+
+Do **not** include executed code or hypothetical experiments.
+
+---
+
+### **B. JSON Summary File**
+
+**Path:**
+`{REPO_PATH}/no_exe_evaluation/generalization_eval_summary.json`
+
+It must contain the following structure:
+
+```json
+{{
+  "Checklist": {{
+    "GT1_ModelGeneralization": "PASS" or "FAIL",
+    "GT2_DataGeneralization": "PASS" or "FAIL",
+    "GT3_MethodGeneralization": "PASS" or "FAIL" or "NA"
+  }},
+
+  "Rationale": {{
+    "GT1_ModelGeneralization": "Why PASS or FAIL",
+    "GT2_DataGeneralization": "Why PASS or FAIL",
+    "GT3_MethodGeneralization": "Why PASS or FAIL or NA"
+  }}
+}}
+```
+

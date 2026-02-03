@@ -1,0 +1,184 @@
+## Mechanistic Analysis Experiment — Typo Correction and Token Remapping
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **Llama 3.2 3B** or **Qwen 2.5 3B** (or smaller variants like **gpt2-medium**), loaded via **HookedTransformer**.
+* Use dataset: **typo–clean pairs** and **typoed instruction–response pairs**, including:
+
+  * Single-edit typos (insert/delete/substitute/transpose)
+  * Multi-edit typos
+  * Keyboard-adjacent typos
+  * Typos in content words vs. function words vs. named entities
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Understand **how the model interprets and corrects typos**, focusing on how it maps an incorrect surface form to an intended token/word meaning.
+
+This project may, but does not have to, result in identifying a localized circuit. The acceptable outcome is either:
+
+* A **circuit-level explanation** (specific heads/MLPs are causally responsible), or
+* A **process-level explanation** (distributed computation across layers).
+
+---
+
+### TASK DESCRIPTION
+
+Models often handle misspellings robustly:
+
+> “Explian photosnthesis in 2 sentnces.”
+
+Even with multiple typos, the model infers the intended instruction. This is an example. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* How typoed text is converted into a stable internal representation.
+* Whether correction happens early (embedding/lower layers) or later (context integration).
+* Whether the model forms an internal “cleaned” representation or compensates downstream.
+* Differences between tokenization artifacts and semantic recovery.
+
+Your job is to determine **what internal computation enables typo robustness**.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative research workflow** with explicit hypothesis formation and revision.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **how typo correction might be implemented internally**.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What behavioral capability you aim to localize (typo tolerance vs. explicit correction).
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate analysis methods**, including but not limited to:
+
+   * Probing for representations aligned with the clean form
+   * Activation patching between clean and typoed inputs
+   * Causal interventions on candidate components
+   * Representation similarity across layers
+   * Controlled perturbations of typo severity and location
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Clean vs. typoed versions of the same prompt
+   * Typos that preserve pronunciation vs. typos that do not
+   * Typos on frequent vs. rare words
+   * Typos inside vs. outside instruction-critical tokens
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you reach a stable explanation, which may be:
+
+   * A **minimal circuit** that is causally responsible for remapping, or
+   * A **distributed pathway** where multiple components jointly enable robustness.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+(Use only if circuit-level analysis is appropriate.)
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* If proposing a circuit, only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+Depending on findings, one of the following (or both):
+
+**Circuit File (if applicable)**
+
+```json
+{
+  "nodes": ["{example typoed prompt}", "a?.h?", "m?", ...]
+}
+```
+
+or
+
+**Process Description**
+
+A written account of the internal computation responsible for interpreting typos and recovering intended meaning.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — What typo correction means in this study.
+2. **Data** — Example clean/typo pairs and model behavior.
+3. **Method** — Experiments performed and rationale.
+4. **Results** — What changes across layers/components, and what interventions do.
+5. **Analysis** — How incorrect surface forms map to intended meanings.
+6. **Next Steps** — Open questions and limitations.
+7. **Main Takeaways** — What this reveals about robustness to noisy text.
+
+---
+
+### OUTPUT SUMMARY
+
+* Optional `real_circuits_1.json` — if a circuit is identified.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations of representation alignment between typoed and clean inputs.

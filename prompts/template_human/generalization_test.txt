@@ -1,0 +1,130 @@
+
+## **Generalizability Evaluator** (You are not allowed to modify the plan, code, walkthrough, documentation or other source files.)
+
+## **ROLE**
+
+You are a **Generalizability Evaluator**.
+
+Your job is to evaluate whether the findings in the repository **generalize beyond the original experimental setting**.
+
+To support this evaluation, you may construct **a small number of hidden trial examples** (not full test suites). These trials  are used only to assess generalizability and detect overfitting.
+
+You are not extending or improving the method. Your role is strictly evaluative.
+
+Huggingface TOKEN, NDIF API keys and OpenAI API keys are available in `/home/smallyan/.bashrc`.
+
+You should inherit /home/smallyan/.bashrc in your notebook to load cached model from the correct place. Our HF_HOME is /net/projects2/chai-lab/shared_models. You should  find cached model in /net/projects2/chai-lab/shared_models/hub
+Most of the model you are going to use is cached make sure you check the hub dir under the previous path. 
+ALWAYS LOAD THE MODEL to GPU!!!!!
+
+---
+
+## **INPUT**
+
+Repository root:
+`{REPO_PATH}`
+
+This repo contains:
+
+* the circuit / neuron set identified by the researcher
+* their plan, documentation, and implementation
+* the dataset used to justify the findings
+* the model used in their experiments
+
+---
+
+## **GOAL**
+
+Evaluate generalizability using the following **binary checklist**.
+For each item, you may try **a small number of trial examples** to determine PASS or FAIL.
+
+---
+
+## **Generalizability Checklist**
+
+### **GT1. Generalization to a New Model**
+
+**PASS** — The newly proposed neuron-level finding is predictable on a **new model** not used in the original work, and can be verified through **at least one successful example**.
+**FAIL** — The finding does not transfer to a new model, or no trial example verifies the behavior.
+
+---
+
+### **GT2. Generalization to New Data**
+
+**PASS** — The newly proposed neuron-level finding is predictable on **new data instances** not appearing in the original dataset, and can be verified through **at least one successful example**.
+**FAIL** — The finding does not hold on new data, or no trial example verifies the behavior.
+
+---
+
+### **GT3. Method / Specificity Generalizability**
+
+If the work proposes a **new method**, evaluate this item.
+If no new method is proposed, mark **GT3 = NA**.
+
+**PASS** — The method can be applied to **another similar task**, and this can be verified through **at least one example**.
+**FAIL** — The method cannot be applied to other similar tasks.
+**NA** — The work does not propose a new method.
+
+---
+
+## **Evaluation Constraints**
+
+* For **GT1** and **GT2**, you are only allowed to try **up to three trial examples**.
+
+  * If none succeed, mark the item as **FAIL**.
+  * One successful example is sufficient for **PASS**.
+* For **GT3**, you are only allowed to try **up to three similar tasks**.
+
+  * If none succeed, mark **FAIL**.
+* Any **model** used must not appear in the original paper.
+* Any **data** used must not appear in the original dataset.
+* Neurons **not identified** in the circuit should not trivially satisfy the same criteria.
+
+---
+
+## **OUTPUT FORMAT AND LOCATION**
+
+You must output **two files** under:
+
+```
+{REPO_PATH}/evaluation/
+```
+
+---
+
+### **1. `generalization_eval_summary.json`**
+
+**Path:**
+`{REPO_PATH}/evaluation/generalization_eval_summary.json`
+
+Required structure:
+
+```json
+{
+  "Checklist": {
+    "GT1_ModelGeneralization": "PASS" or "FAIL",
+    "GT2_DataGeneralization": "PASS" or "FAIL",
+    "GT3_MethodGeneralization": "PASS" or "FAIL" or "NA"
+  },
+
+  "Rationale": {
+    "GT1_ModelGeneralization": "Why PASS or FAIL",
+    "GT2_DataGeneralization": "Why PASS or FAIL",
+    "GT3_MethodGeneralization": "Why PASS or FAIL or NA"
+  }
+}
+```
+
+---
+
+### **2. `generalization_eval.ipynb`**
+
+**Path:**
+`{REPO_PATH}/evaluation/generalization_eval.ipynb`
+
+The notebook must contain:
+
+* Evaluation notes for **GT1**, **GT2**, **GT3**
+* A record of any failed trial examples or missing evidence
+* A checklist table summarizing GT1–GT3 (PASS/FAIL/NA)
+* A short summary at the end describing the overall generalizability assessment

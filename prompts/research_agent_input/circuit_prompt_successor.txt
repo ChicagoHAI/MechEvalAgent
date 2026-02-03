@@ -1,0 +1,259 @@
+# Large Circuit Tracing Experiment — Successor Heads Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **pythia-14m** (smallest Pythia model) or **pythia-31m** loaded via **HookedTransformer**.
+* Use dataset: Ordinal sequences (days of week, months, numbers) where the task is to predict the next item.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify **Successor Heads**—attention heads that implement **ordinal sequence continuation** by predicting the next item in learned sequences like "Monday → Tuesday" or "1 → 2".
+
+---
+
+### TASK DESCRIPTION
+
+Successor Heads handle ordinal prediction tasks.
+
+Examples:
+```
+Input:  "Monday"    → Output: "Tuesday"
+Input:  "January"   → Output: "February"
+Input:  "5"         → Output: "6"
+```
+
+* The model learns **successor relationships** from training data.
+* Successor Heads **attend to the previous item** and predict the next one.
+* This is similar to induction but for **learned ordinal sequences** rather than arbitrary patterns.
+
+Key properties:
+* **Domain-specific**: Different heads for different sequence types (numbers vs. days vs. months)
+* **Attention pattern**: Focus on the previous token in the sequence
+* **Incrementation**: Implements a "+1" operation in the learned space
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The successor circuit consists of **Successor Heads** that implement ordinal continuation:
+
+1. **Successor Heads**
+
+   * Attend to the **current item** in an ordinal sequence.
+   * Retrieve the successor from a learned mapping.
+   * Write the successor token representation to the residual stream.
+
+2. **Potential Supporting Heads**
+
+   * May include heads that detect the sequence type (numeric vs. calendar).
+   * May include position-tracking heads.
+
+**Mechanism**: The head learns a mapping `X → X+1` for items in ordinal sequences during pretraining.
+
+---
+
+### SRC_NODES
+
+For Pythia-14m (6 layers, 4 heads per layer):
+
+```
+[
+  'input',
+  'a0.h0','a0.h1','a0.h2','a0.h3','m0',
+  'a1.h0','a1.h1','a1.h2','a1.h3','m1',
+  'a2.h0','a2.h1','a2.h2','a2.h3','m2',
+  'a3.h0','a3.h1','a3.h2','a3.h3','m3',
+  'a4.h0','a4.h1','a4.h2','a4.h3','m4',
+  'a5.h0','a5.h1','a5.h2','a5.h3','m5'
+]
+```
+
+Note: Adjust if using pythia-31m (different architecture).
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* Each MLP writes `d_model` dimensions.
+* **No budget constraint specified** (focus on identifying successor mechanism).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (Successor Heads implement ordinal continuation)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., activation patching, direct logit attribution, attention analysis)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a2.h1", "a3.h2", ...]
+}
+```
+
+Expected: **2-4 heads** that specialize in different ordinal types.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (Successor Heads for ordinal sequences).
+3. **Data** — Example ordinal sequences (days, months, numbers) and structure.
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit identification, head specialization analysis, direct logit attribution.
+6. **Analysis** — Whether findings support the hypothesis (dedicated heads for successor prediction).
+7. **Next Steps** — Potential extensions (other ordinal types, larger models).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Visualizations: Attention patterns, logit attribution by head, successor accuracy by sequence type.
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Dataset Creation
+
+Create test cases for different ordinal types:
+
+1. **Days of week**:
+   ```
+   "Monday" → "Tuesday"
+   "Tuesday" → "Wednesday"
+   ...
+   ```
+
+2. **Months**:
+   ```
+   "January" → "February"
+   "February" → "March"
+   ...
+   ```
+
+3. **Numbers** (1-20):
+   ```
+   "1" → "2"
+   "2" → "3"
+   ...
+   ```
+
+4. **Alphabet**:
+   ```
+   "A" → "B"
+   "B" → "C"
+   ...
+   ```
+
+* **Minimum 50 examples** covering multiple ordinal types
+* Test both **in-context** (sequence continues in same text) and **isolated** (single item prediction)
+
+### Model Loading
+
+```python
+from transformer_lens import HookedTransformer
+
+# Use smallest Pythia for efficiency
+model = HookedTransformer.from_pretrained("pythia-14m")
+# Or: model = HookedTransformer.from_pretrained("pythia-31m")
+```
+
+### Key Metrics
+
+* **Successor prediction accuracy**:
+  - For each ordinal type, measure if correct successor is predicted
+  - Compare across sequence types (are some easier than others?)
+
+* **Direct Logit Attribution**:
+  - Identify which heads contribute most to correct successor prediction
+  - Check if different heads specialize in different ordinal types
+
+* **Attention patterns**:
+  - Do Successor Heads attend to the previous item?
+  - Do they show position-specific patterns?
+
+* **Ablation experiments**:
+  - Remove candidate Successor Heads and measure accuracy drop
+  - Test if ablation affects all ordinal types equally
+
+### Expected Circuit Properties
+
+* **Recurring pattern**: Successor Heads appear in multiple layers of multiple models
+* **Interpretable**: Clear correspondence between head and function
+* **Head specialization**: Different heads may handle different sequence types
+* **Simple mechanism**: Similar to induction but for fixed orderings
+
+### Analysis Techniques
+
+1. **Direct Logit Attribution**:
+   ```python
+   # For each head, compute contribution to successor token's logit
+   for layer in range(n_layers):
+       for head in range(n_heads):
+           head_contribution = compute_head_logit_contribution(layer, head, target_token)
+   ```
+
+2. **Attention Analysis**:
+   ```python
+   # Visualize attention patterns for successor predictions
+   attention_pattern = cache[f"blocks.{layer}.attn.hook_pattern"][:, head, :, :]
+   ```
+
+3. **Cross-sequence Testing**:
+   ```python
+   # Test if same head handles multiple ordinal types
+   test_on_days()
+   test_on_months()
+   test_on_numbers()
+   # Compare which heads are important for each
+   ```

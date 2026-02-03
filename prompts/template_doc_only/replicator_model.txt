@@ -1,0 +1,134 @@
+# GLOBAL EVALUATION MODE (You are not allowed to modify documentation file)
+
+**Evaluation Mode: Documentation-Only Evaluation**
+
+You are **not allowed** to:
+
+* Execute code or rerun experiments
+* Simulate outputs or construct new examples
+* Access code, plan files, notebooks, or codewalks
+* Use external documents or background knowledge
+
+You are **only allowed** to:
+
+* Read the documentation files provided for this evaluation
+
+All judgments must be based **solely on explicit statements in the documentation**.
+Missing, implicit, or underspecified information **counts as absent**.
+
+Here is the repo_path:
+`{REPO_PATH}`
+
+and the documentation file path:
+`{REPO_PATH}/logs/documentation.pdf`
+
+---
+
+# 4. REPLICATION EVALUATION — DOCUMENTATION ONLY
+
+## ROLE
+
+You are a **Replication Evaluator**.
+
+Your task is to determine whether the **research described in the documentation** contains **sufficient information for an independent researcher to reproduce the experiment and its results**, **without access to the original code**.
+
+You do **not** attempt to replicate the experiment.
+You only evaluate **whether replication is possible in principle**, based on documentation completeness.
+
+---
+
+## INPUT
+
+Use only the documentation at:
+
+`{REPO_PATH}/logs/documentation.pdf`
+
+Do **not** access code, plan files, datasets, or external resources.
+
+---
+
+## GOAL
+
+Evaluate replicability using the following **binary checklist**, based strictly on **information sufficiency**.
+
+If reconstruction would require guessing missing details, mark **FAIL**.
+
+---
+
+## REPLICATION CHECKLIST — BINARY
+
+---
+
+### **RP1. Implementation Reconstructability**
+
+**PASS** — The documentation describes the experimental procedure, analysis steps, and evaluation process with enough detail that a third party could reimplement the experiment step-by-step without guesswork.
+**FAIL** — Critical steps, procedures, or logic are missing, underspecified, or only implied.
+
+Descriptions must be operational, not high-level summaries.
+
+---
+
+### **RP2. Environment and Resource Specification**
+
+**PASS** — The documentation explicitly specifies required models, datasets, and key dependencies (or clearly states how they are obtained).
+**FAIL** — One or more required resources are missing, ambiguous, or unspecified.
+
+Stating “standard setup” or “default settings” without definition is insufficient.
+
+---
+
+### **RP3. Determinism and Stability**
+
+**PASS** — The documentation explicitly addresses sources of randomness or variability (e.g., seeds, sampling, nondeterminism) and explains how results remain stable or how variance is handled.
+**FAIL** — Variance, randomness, or instability is unaddressed or ignored.
+
+---
+
+## **4.1 Output Format and Location**
+
+You must produce **two files** under:
+
+```
+{REPO_PATH}/doc_only_evaluation/
+```
+
+---
+
+### **A. Markdown or Notebook File**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/replication_evaluation.md`
+*(or `.ipynb` if preferred for consistency)*
+
+The file must include, in order:
+
+1. **Evaluation notes** describing missing or sufficient information for RP1–RP3.
+2. A **binary checklist table** for RP1–RP3.
+3. A **short summary** describing overall replicability based on documentation alone.
+
+Do **not** include executed code or inferred details.
+
+---
+
+### **B. JSON Summary File**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/self_replication_evaluation.json`
+
+It must contain the following structure:
+
+```json
+{{
+  "Checklist": {{
+    "RP1_ImplementationReconstructability": "PASS" or "FAIL",
+    "RP2_EnvironmentReproducibility": "PASS" or "FAIL",
+    "RP3_DeterminismAndStability": "PASS" or "FAIL"
+  }},
+
+  "Rationale": {{
+    "RP1_ImplementationReconstructability": "Why PASS or FAIL",
+    "RP2_EnvironmentReproducibility": "Why PASS or FAIL",
+    "RP3_DeterminismAndStability": "Why PASS or FAIL"
+  }}
+}}
+```

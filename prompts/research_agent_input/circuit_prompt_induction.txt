@@ -1,0 +1,204 @@
+# Large Circuit Tracing Experiment — Induction Heads Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **attn-only-2l** (2-layer attention-only transformer) loaded via **HookedTransformer**.
+* Use dataset: Synthetic sequences with repeated token patterns.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify the **induction circuit**—the simplest and most fundamental circuit in transformers—consisting of **Previous Token Heads** and **Induction Heads** that enable the model to continue repeated sequences.
+
+---
+
+### TASK DESCRIPTION
+
+Induction is the task of completing a repeated sequence pattern.
+
+Example:
+```
+Input:  [A] [B] [C] [D] [A] [B] [C] [?]
+Output: [D]
+```
+
+* The model sees a sequence with a repeated pattern.
+* When it sees `[A] [B]` the second time, it should predict `[C]` (the token that followed `[B]` in the first occurrence).
+* This is the **"Hello World"** of mechanistic interpretability.
+
+Key properties:
+* Requires **two attention heads** working in composition
+* Previous Token Head attends backwards by one position
+* Induction Head attends to the token after the match
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The induction circuit consists of two components working in composition:
+
+1. **Previous Token Head** (Layer 0)
+
+   * Attends to the **previous token** (offset of -1).
+   * Writes information about "what token came before" into the residual stream.
+   * Creates a "previous token" key-value mapping.
+
+2. **Induction Head** (Layer 1)
+
+   * Attends to positions where the **previous token matches** the current context.
+   * Uses the Previous Token Head's output to find matching contexts.
+   * Copies the token that followed the match, completing the pattern.
+
+**Composition**: The Previous Token Head's output is used by the Induction Head in its key computation, forming a **two-layer circuit**.
+
+---
+
+### SRC_NODES
+
+For a 2-layer attention-only model with 8 heads per layer:
+
+```
+[
+  'input',
+  'a0.h0','a0.h1','a0.h2','a0.h3','a0.h4','a0.h5','a0.h6','a0.h7',
+  'a1.h0','a1.h1','a1.h2','a1.h3','a1.h4','a1.h5','a1.h6','a1.h7'
+]
+```
+
+Note: This is an attention-only model, so there are **no MLP nodes**.
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* **No budget constraint specified** (focus on identifying the minimal functional circuit).
+* Only use nodes from `src_nodes`.
+* Naming must follow `a{layer}.h{head}` or `input`.
+
+---
+
+### PLAN REQUIREMENTS
+
+Before implementation, you must create `logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to discover or verify
+2. **Hypothesis** — The specific hypothesis being tested (Previous Token Head → Induction Head composition)
+3. **Method** — Your planned approach for testing the hypothesis (e.g., attention pattern visualization, ablation, composition analysis)
+4. **Expected Outcomes** — What results would support or refute the hypothesis
+
+This plan should be created before any implementation begins.
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a0.h7", "a1.h4"]
+}
+```
+
+Expected: Typically **2-3 heads total** (1 Previous Token Head + 1-2 Induction Heads).
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (Previous Token Head in L0 composes with Induction Head in L1).
+3. **Data** — Example repeated sequences and structure.
+4. **Method** — Methods and techniques used to conduct the research.
+5. **Results** — Final circuit list, attention patterns, composition evidence.
+6. **Analysis** — Whether findings support the hypothesis (clear Previous Token + Induction patterns).
+7. **Next Steps** — Potential extensions (larger models, different sequence types).
+8. **Main Takeaways** — What the results implicate, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list (expected: 2-3 heads).
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Visualizations: attention patterns showing Previous Token (diagonal -1) and Induction (stripe pattern).
+
+---
+
+## ADDITIONAL GUIDANCE
+
+### Dataset Creation
+
+Create synthetic repeated sequences:
+
+1. **Random token sequences**: Use random tokens (e.g., A-Z, or random integers)
+2. **Repeated pattern**: `[rand_seq] [rand_seq]` where second occurrence is identical
+3. **Sequence length**: 20-50 tokens per example
+4. **Minimum 100 examples** for robust analysis
+
+Example generation:
+```python
+import random
+vocab_size = 50
+seq_len = 20
+
+# Generate random sequence
+seq = [random.randint(0, vocab_size-1) for _ in range(seq_len)]
+# Repeat it
+repeated_seq = seq + seq
+```
+
+### Model Loading
+
+```python
+from transformer_lens import HookedTransformer
+model = HookedTransformer.from_pretrained("attn-only-2l")
+```
+
+### Key Metrics
+
+* **Induction score**: Accuracy on predicting the next token in repeated sequences
+* **Attention patterns**:
+  - Previous Token Head: Strong diagonal at offset -1
+  - Induction Head: Stripe pattern (attends to previous occurrence of current token)
+* **Ablation impact**: Performance should drop significantly when removing identified heads
+* **Composition score**: Evidence that L1 reads from L0 (via OV and QK circuit analysis)
+
+### Expected Circuit Properties
+
+* **Exactly 2 heads minimum** (1 Previous Token + 1 Induction)
+* **Layer separation**: Previous Token in L0, Induction in L1
+* **Attention patterns**: Clear visual signatures (diagonal for prev token, stripes for induction)
+* **Composition**: Mathematical evidence of L0→L1 information flow
+

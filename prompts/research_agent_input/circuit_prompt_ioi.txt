@@ -1,0 +1,163 @@
+# Large Circuit Tracing Experiment — IOI Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** loaded via **HookedTransformer**.
+* Use dataset: **mib-bench/ioi**.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify a **precise circuit**—a subset of attention heads and MLPs—that reproduces the model’s **Indirect Object Identification (IOI)** behavior as faithfully as possible while obeying strict **residual write-budget constraints**.
+
+---
+
+### TASK DESCRIPTION
+
+A sentence in the IOI dataset has an **initial dependent clause** and a **main clause**:
+Example: *“When Mary and John went to the store, John gave a bottle of milk to Mary.”*
+
+* The dependent clause introduces the **Indirect Object (IO)** “Mary” and the **Subject (S)** “John”.
+* The main clause refers to the subject again, and the model must predict that the **final token** is the **IO**.
+* We use `S1` and `S2` to denote the first and second subject mentions.
+* The IOI task evaluates whether the model correctly predicts the final IO token.
+
+---
+
+### HYPOTHESIS (Circuit Proposal)
+
+The IOI circuit is hypothesized to include three main head types:
+
+1. **Duplicate Token Heads**
+
+   * Active at `S2`, attend to `S1`, and signal duplication by writing position features.
+
+2. **S-Inhibition Heads**
+
+   * Active at `END`, attend to `S2`, and inhibit Name-Mover attention to `S1`/`S2`.
+
+3. **Name-Mover Heads**
+
+   * Active at `END`, attend to earlier names, and copy the **IO** token into the residual stream.
+
+These components together yield correct IOI predictions by suppressing subject interference and preserving the correct indirect object.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a0.h11','m0',
+  'a1.h0',...,'a1.h11','m1',
+  'a2.h0',...,'a2.h11','m2',
+  'a3.h0',...,'a3.h11','m3',
+  'a4.h0',...,'a4.h11','m4',
+  'a5.h0',...,'a5.h11','m5',
+  'a6.h0',...,'a6.h11','m6',
+  'a7.h0',...,'a7.h11','m7',
+  'a8.h0',...,'a8.h11','m8',
+  'a9.h0',...,'a9.h11','m9',
+  'a10.h0',...,'a10.h11','m10',
+  'a11.h0',...,'a11.h11','m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* You should always generate a plan before implementation, following the requirements below.
+* Each attention head writes `d_model / n_heads` dimensions.
+* Each MLP writes `d_model` dimensions.
+* **Total writes ≤ 11,200.**
+* Only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+### PLAN REQUIREMENTS
+
+Before implementation, you must create
+`logs/plan.md` that includes, but isn't limited to:
+
+1. **Goal** — What you're trying to
+discover or verify
+2. **Hypothesis** — The specific
+hypothesis being tested (reference the
+three head types above)
+3. **Method** — Your planned approach
+for testing the hypothesis (e.g.,
+activation patching, ablation studies,
+etc.)
+4. **Expected Outcomes** — What results
+would support or refute the hypothesis
+
+---
+
+## EXPECTED OUTPUTS
+
+### FINAL CIRCUIT FILE
+
+Save node list to `real_circuits_1.json`:
+
+```json
+{
+  "nodes": ["input", "a3.h4", "m4", ...]
+}
+```
+
+Check that:
+
+* All nodes are in `src_nodes`.
+* Total writes ≤ 11,200.
+* Naming is consistent.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan.md`
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_Md.ipynb`
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — The research objective and what you're trying to discover.
+2. **Hypothesis** — The specific hypothesis being tested (the three head types \
+   including Duplicate Token, S-Inhibition, Name-Mover)
+2. **Data** — Example IOI sentence and label structure.
+3. ***Method* — Methods and techniques used to conduct the research.
+4. **Results** — Final circuit list, metrics before/after selection, and verification of constraints.
+5. **Analysis** — Whether findings support the hypothesis.
+6. **Next Steps** — Potential extensions or alternative hypotheses.
+7. **Main Takeaways** — What the results implicates, and what can be learned from the results.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — documentation and plan markdowns.
+* `notebooks/` — supporting experiment notebooks.
+* Optional visualizations (e.g., token attention or activation plots).

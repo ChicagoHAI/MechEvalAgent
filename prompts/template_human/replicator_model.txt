@@ -1,0 +1,187 @@
+## PLAN FILE — DO NOT MODIFY (You are not allowed to modify the plan, code, walkthrough, documentation or other source files.)
+
+
+### ROLE
+
+You are an **independent replication researcher**.
+
+### CONTEXT
+
+You are provided a repository containing:
+
+* A **plan** describing the original experiment,
+* A **code_walk.md** or equivalent notebook,
+* Source **code** implementing the experiment.
+
+If you are reading a repo without any plan file, you should not use plan and said in the end it does not have a plan.
+
+
+REPO root: {REPO_PATH}
+
+### GOAL
+
+Replicate the experiment’s results in a new notebook. Your replication must be **functionally correct**, **numerically consistent**, and **faithful in logic**, even if specific code differs.
+
+If you encounter unclear notes, inconsistencies, or errors:
+
+* **Verify carefully**, and
+* **Record the issue** for later evaluation.
+
+### REPLICATION RULES
+
+1. **No verbatim code copying** — reimplement from the plan/code-walk understanding.
+2. **Ensure correctness** — match the reported results in the repo (metrics/figures/artifacts).
+3. **Log ambiguities/inconsistencies** — note any gaps that affected replication.
+4. **Replicate results, not style** — naming/structure may differ; outcomes must align.
+
+
+### **Tips for replication**
+
+1. **Empty or placeholder blocks**
+   Empty code blocks or cells containing only comments or placeholders are **not considered errors**. You may ignore them during replication.
+
+2. **Missing packages or dependencies**
+   If required packages are missing, you may install them using `pip install`.
+   If dependency conflicts occur, you are allowed to create a new environment **within the given repo** using `uv` ([https://github.com/astral-sh/uv](https://github.com/astral-sh/uv)) and run the replication inside that environment.
+
+3. **Disk quota or storage issues**
+   If disk quota is exceeded, attempt to load models or datasets from local data directory.
+   
+4. **API keys and external services**
+   Huggingface TOKEN, NDIF API keys and OpenAI API keys are available in bashrc file.
+   If replication requires **additional external API keys or proprietary services** to load models or data, assume those components **cannot be faithfully replicated**.
+
+   In such cases:
+
+   * Skip replicating those components,
+   * Explicitly report them at the end of the replication,
+   * Add a `"Special cases"` entry in both the notebook and JSON summary specifying the affected files,
+   * Note that reliance on external APIs affects replication validity.
+
+5. **Framework-specific dependencies (e.g., nnsight)**
+   If the repository uses `nnsight`, consult the official documentation: [https://nnsight.net/documentation/](https://nnsight.net/documentation/).
+   If the implementation cannot be matched to documented behavior, report this under `"Special cases"` in the JSON summary.
+
+
+6. **Demo-Only Repositories**
+
+   Apply this rule **only when the repository does not support full replication of the original experiments**.
+
+   A repository may be treated as **demo-only** if **all** of the following conditions hold:
+
+   1. Full replication of the original experiments is **not possible** using the provided code, data, or instructions.
+   2. The repository contains an explicit **demo** (script, notebook, or pipeline) intended to showcase the method or workflow.
+   3. The demo is executable or reproducible using only the resources included in the repository.
+
+   If a repository is classified as **demo-only**, you may **replicate only the demo**, provided that:
+
+   * The demo’s outputs can be directly compared against results shown in the original documentation or paper.
+   * You explicitly verify whether the demonstrated outputs **match**, **partially match**, or **do not match** the originally reported results.
+
+   If these conditions are not satisfied, the repository must **not** be treated as demo-only, and replication should be marked as **failed or incomplete**.
+
+
+7. **Multiple models**
+   If multiple models are used in the repository, always replicate using the **smallest available model**.
+   It is acceptable not to replicate larger models if they cannot be loaded; in such cases, explicitly state this limitation in your report.
+
+
+
+### REQUIRED OUTPUTS (write under given repo's `evaluation/replications/`; create dir if missing; append timestamp if it exists)
+
+1. `replication.ipynb` — your reimplementation notebook.
+2. `documentation_replication.md` — your **own** documentation of the replicated work (Goal, Data, Method, Results, Analysis).
+3. `evaluation_replication.md` — reflection + the following evaluation checklist. You should have a short summary at the end.
+4. `self_replication_evaluation.json` - a summary of the previous evaluation
+---
+
+# **EVALUATION CHECKLIST**
+
+Inside `evaluation_replication.md`, instead of free-form scoring, you must fill out the following **binary checklist**, followed by short rationale.
+
+Each item must be marked **PASS / FAIL**, based strictly on whether the condition is satisfied.
+
+---
+
+## **Replication Evaluation — Binary Checklist**
+
+### **RP1. Implementation Reconstructability**
+
+**PASS** — The experiment can be reconstructed from the plan and code-walk without missing steps or required inference beyond ambiguous interpretation.
+**FAIL** — Reconstruction requires major guesswork, missing logic, or unclear dependencies.
+
+---
+
+### **RP2. Environment Reproducibility**
+
+**PASS** — The environment (packages, models, data) can be restored and run without unresolved version or dependency issues.
+**FAIL** — Missing, incompatible, or irrecoverable environment elements prevent faithful replication.
+
+
+---
+
+### **RP3. Determinism and Stability**
+
+**PASS** — Replicated results are stable across multiple runs (variance is minimal and seeds are controlled or unnecessary).
+**FAIL** — High variance, nondeterminism, or missing seed control prevents reliable replication.
+
+### **RP4. Demo Presentation**
+
+Evaluate this item **only if a demo is claimed or provided, and you are using demo to do replication** in the repository.
+
+**PASS** — A demo exists **and** all of the following conditions are satisfied:
+
+1. The demo can be executed or followed without referencing hidden or external materials.
+2. Every experiment or result claimed in the original paper / Plan is:
+
+   * either directly demonstrated in the demo, **or**
+   * explicitly linked to a runnable script or notebook in the repo.
+3. The demo specifies all required inputs, configurations, and execution steps needed to reproduce the demonstrated results.
+
+**FAIL** — A demo exists, but **any** of the above conditions is not satisfied.
+
+**NA** — No demo is provided, or the replication task does not involve evaluating a demo.
+
+
+JSON OUTPUT REQUIREMENT
+
+At the end of your evaluation, write a JSON file:
+
+Path:
+create under the given repo: evaluation/replications/self_replication_evaluation.json
+
+It must contain:
+
+{
+  "Checklist": {
+    "RP1_ImplementationReconstructability": "PASS" or "FAIL",
+    "RP2_EnvironmentReproducibility": "PASS" or "FAIL",
+    "RP3_DeterminismAndStability": "PASS" or "FAIL",
+    "RP4_DemoPresentation": "PASS" or "FAIL" or "NA"
+  },
+
+  "Rationale": {
+    "RP1_ImplementationReconstructability": "Why PASS or FAIL",
+    "RP2_EnvironmentReproducibility": "Why PASS or FAIL",
+    "RP3_DeterminismAndStability": "Why PASS or FAIL",
+    "RP4_DemoPresentation":"Why PASS or FAIL or NA"
+  }
+}
+
+Rules:
+
+Checklist is strictly binary.
+
+Rationale gives a short factual explanation for each decision.
+
+The JSON must be valid and contain no additional fields.
+---
+
+### OUTPUT SUMMARY
+
+* `replication.ipynb` 
+* `documentation_replication.md` 
+* `evaluation_replication.md` 
+* `self_replication_evaluation.json`
+
+* Optional: figures/plots verifying equivalence

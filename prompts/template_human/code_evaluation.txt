@@ -1,0 +1,196 @@
+### **1. Code Evaluation** (You are not allowed to modify the plan, code, walkthrough, documentation or other source files.)
+
+You are a **strict, deterministic evaluator** of the code implementing the circuit analysis.
+
+You will read **all code under the REPO**:
+`{REPO_PATH}`
+
+### **Source of Project Goal**
+
+Use the following files:
+
+1. The **Plan** file.
+2. The **codewalk** file (always used).
+
+These sources define the intended method and expected outputs.
+
+Do **not** read the documentation file unless explicitly instructed.
+
+Use the **codewalk file** as your main guide to which scripts / notebooks implement the core analysis and how they are supposed to work.
+
+If the implementation is in Jupyter notebooks, treat each **code cell** as a unit.
+If the implementation is in plain Python scripts or modules, treat each **top-level function** (or clearly separated code block) as a unit.
+
+### **Tips for running the code**
+
+1. **Empty or placeholder code blocks**
+   Empty blocks or cells containing only comments or pass statements are **not considered errors**. You may ignore them during evaluation.
+
+2. **Missing packages or dependencies**
+   If a required package is missing, you may install it using `pip install`.
+   If dependency conflicts arise, you are allowed to create a new environment **within the given repo** using `uv` ([https://github.com/astral-sh/uv](https://github.com/astral-sh/uv)), and run the code inside that environment.
+
+3. **Disk quota or storage issues**
+   If disk quota is exceeded, try loading models or datasets from local data directory.
+
+4. **API keys and external services**
+   Huggingface TOKEN, NDIF API keys and OpenAI API keys are available in bashrc.
+   If the code requires **other external API keys or proprietary services** to load models or data, assume that portion of the code **cannot be evaluated**.
+
+   In such cases:
+
+   * Ignore those blocks when completing the checklist,
+   * Report them explicitly at the end of the evaluation,
+   * Add a `"Special cases"` entry in the JSON summary specifying the affected files,
+   * Note that reliance on external API keys affects evaluation and reproducibility.
+
+5. **Framework-specific dependencies (e.g., nnsight)**
+   If the repository uses `nnsight`, consult the official documentation: [https://nnsight.net/documentation/](https://nnsight.net/documentation/).
+   If you cannot find the corresponding implementation or behavior described in the documentation, report this under `"Special cases"` in the JSON summary, following the same procedure as for unavailable external APIs.
+
+
+---
+
+### **1.1 Per-block Evaluation**
+
+For **every code block / function** that participates in the main analysis:
+
+You must **run it** (or run the notebook/script in the order described in the codewalk file).
+For each block, record the following **binary flags** and a short factual note whenever a flag is `N`:
+
+1. **Runnable (Y/N)**
+
+   * **Y**: The block executes without error.
+   * **N**: The block raises an error, hangs, or requires manual intervention.
+
+2. **Correct-Implementation (Y/N)**
+
+   * **Y**: The logic implements the described computation correctly (indexing, metric formulas, patching logic, dataset handling).
+   * **N**: There is a clear implementation error relative to the stated purpose.
+   * **NA**: If there is no described computation, mark it as NA
+
+3. **Redundant (Y/N)**
+
+   * **Y**: The block duplicates another block’s computation without adding new information. (If it is fixing the error in the previous block, it is NOT considered as redundant)
+   * **N**: Non-duplicative.
+
+4. **Irrelevant (Y/N)**
+
+   * **Y**: The block does not contribute to achieving the project goal as defined in the Plan/codewalk/paper.
+   * **N**: Relevant.
+
+Record these flags in a **table** inside the notebook (one row per block/function, one column per flag), with a clear identifier for each block (file name + cell index or function name).
+If any flag is `N`, include a **brief factual error note** (1–2 sentences, no subjective language).
+
+---
+
+### **1.2 Quantitative Metrics**
+
+From the per-block table, compute the following **objective percentages**:
+
+* **Runnable%** = (# blocks with `Runnable = Y`) / (total blocks) × 100
+* **Output-Matches-Expectation%** = (# blocks with `Output-Matches-Expectation = Y`) / (total blocks) × 100
+* **Incorrect%** = (# blocks with `Correct-Implementation = N`) / (total blocks) × 100
+* **Redundant%** = (# blocks with `Redundant = Y`) / (total blocks) × 100
+* **Irrelevant%** = (# blocks with `Irrelevant = Y`) / (total blocks) × 100
+
+If in the implementation it fixes a failing block and re-run it successfully, also compute:
+
+* **Correction-Rate%** = (# corrected blocks) / (# blocks that ever failed `Runnable` or `Correct-Implementation`) × 100
+
+All percentages must be explicit numeric values (0–100), directly computed from the binary table.
+
+---
+
+### **1.3 Binary Checklist Summary**
+
+At the **end of the evaluation**, produce a **binary checklist** summarizing whether *any violations exist*.
+
+This version is reusable for both AI-agent repos and human repos because it uses no thresholds.
+
+1. **C1: All core analysis code is runnable. (PASS/FAIL)**
+
+   * **PASS** if no block has `Runnable = N`.
+   * **FAIL** otherwise.
+
+2. **C2: All implementations are correct. (PASS/FAIL)**
+
+   * **PASS** if no block has `Correct-Implementation = N`.
+   * **FAIL** otherwise.
+
+3. **C3: No redundant code. (PASS/FAIL)**
+
+   * **PASS** if no block has `Redundant = Y`.
+   * **FAIL** otherwise.
+
+4. **C4: No irrelevant code. (PASS/FAIL)**
+
+   * **PASS** if no block has `Irrelevant = Y`.
+   * **FAIL** otherwise.
+
+
+Output this checklist in a **clear table** with columns:
+`Checklist Item | Condition | PASS/FAIL`
+
+---
+
+### **1.4 Output Format and Location**
+
+You must produce **two files**:
+
+---
+
+#### **A. Jupyter Notebook**
+
+**Path:** `{REPO_PATH}/evaluation/code_critic_evaluation.ipynb`
+
+The notebook must include, in order:
+
+1. **Block-level table** with all binary flags **and error notes**.
+2. **Quantitative metrics** (Runnable%, Output-Matches-Expectation%, Incorrect%, Redundant%, Irrelevant%, Correction-Rate%).
+3. **Binary checklist summary** (C1–C4).
+
+Add a summary of all those at the end of the file.
+
+No other files may be produced except the JSON summary below.
+
+---
+
+#### **B. JSON Summary File**
+
+**Path:** `{REPO_PATH}/evaluation/code_critic_summary.json`
+
+It must contain the following structure:
+
+```json
+{
+  "Runnable_Percentage": float,
+  "Incorrect_Percentage": float,
+  "Redundant_Percentage": float,
+  "Irrelevant_Percentage": float,
+  "Correction_Rate_Percentage": float,
+
+  "Issues": {
+    "Runnable_Issues_Exist": boolean,
+    "Output_Mismatch_Exists": boolean,
+    "Incorrect_Exists": boolean,
+    "Redundant_Exists": boolean,
+    "Irrelevant_Exists": boolean
+  },
+
+  "Checklist": {
+    "C1_All_Runnable": "PASS" or "FAIL",
+    "C2_All_Correct": "PASS" or "FAIL",
+    "C3_No_Redundant": "PASS" or "FAIL",
+    "C4_No_Irrelevant": "PASS" or "FAIL"
+  },
+
+  "Rationale":{
+      "C1_All_Runnable": Why "PASS" or "FAIL",
+      "C2_All_Correct": Why "PASS" or "FAIL",
+      "C3_No_Redundant": Why "PASS" or "FAIL",
+      "C4_No_Irrelevant": Why "PASS" or "FAIL"
+  }
+  
+}
+```

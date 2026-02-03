@@ -1,0 +1,196 @@
+## Mechanistic Analysis Experiment — Semantic vs. Narrative Inevitability
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **gpt2-small** or **gpt2-medium**, loaded via **HookedTransformer**.
+* Use dataset: **cloze-style sentence continuations** designed to elicit different forms of inevitability, including:
+
+  * Physically constrained events (e.g., cause–effect in the physical world),
+  * Narrative or genre-driven resolutions (e.g., story closure, plot completion),
+  * Matched controls with reduced inevitability.
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Understand whether the model **internally distinguishes different kinds of inevitability**, specifically:
+
+* **Semantic / physical inevitability** — outcomes constrained by real-world causality.
+* **Narrative inevitability** — outcomes constrained by discourse structure or storytelling conventions.
+
+The goal is to determine whether these are handled by:
+
+* Distinct internal mechanisms,
+* Shared representations with different triggers,
+* Or a single undifferentiated “high-probability continuation” process.
+
+This project may, but does not have to, result in identifying a localized circuit.
+
+---
+
+### TASK DESCRIPTION
+
+Some prompts strongly constrain their continuation, but for different reasons.
+
+Examples:
+
+**Physical inevitability**
+
+> “She dropped the glass. It hit the floor and ___”
+
+**Narrative inevitability**
+
+> “The detective found the final clue. The mystery was ___”
+
+Both invite a highly predictable completion, but the source of constraint differs. Those are examples. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* Differences in internal representations preceding predictable completions.
+* Whether physical causality and narrative closure recruit different components.
+* How inevitability strength is encoded or amplified.
+* Whether genre or discourse signals override semantic uncertainty.
+
+Your job is to investigate **how these forms of inevitability are computed internally**, and whether they are distinguishable.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative research workflow** with explicit hypothesis formation and revision.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **how inevitability is represented internally**, and whether different types are distinguished.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What operational distinction you are testing.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate analysis methods**, including but not limited to:
+
+   * Probing internal activations before the completion point
+   * Activation patching across physical vs. narrative prompts
+   * Causal interventions on candidate components
+   * Representation similarity or divergence analysis
+   * Controlled weakening or strengthening of inevitability cues
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Physical vs. narrative inevitability prompts
+   * High-inevitability vs. low-inevitability variants
+   * Genre-consistent vs. genre-violating contexts
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you reach a stable explanation, which may be:
+
+   * A **localized circuit** distinguishing types of inevitability, or
+   * A **shared mechanism** modulated by contextual cues.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+(Use only if circuit-level analysis is appropriate.)
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* If proposing a circuit, only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+Depending on findings, one of the following (or both):
+
+**Circuit File (if applicable)**
+
+```json
+{
+  "nodes": ["{example inevitability prompt}", "a?.h?", "m?", ...]
+}
+```
+
+or
+
+**Process Description**
+
+A written account of how different forms of inevitability are computed and expressed internally.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — What inevitability means in this study.
+2. **Data** — Example prompts for different inevitability types.
+3. **Method** — Experiments performed and rationale.
+4. **Results** — Behavioral and internal differences observed.
+5. **Analysis** — Whether and how inevitability types are distinguished.
+6. **Next Steps** — Open questions and limitations.
+7. **Main Takeaways** — What this reveals about prediction and discourse modeling.
+
+---
+
+### OUTPUT SUMMARY
+
+* Optional `real_circuits_1.json` — if a circuit is identified.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations of activation patterns preceding inevitable completions.

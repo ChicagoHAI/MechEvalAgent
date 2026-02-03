@@ -1,0 +1,187 @@
+## Mechanistic Analysis Experiment — Word Count Instruction Following
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **Llama 3.2 3B** or **Qwen 2.5 3B** (or smaller variants like **gpt2-medium**), loaded via **HookedTransformer**.
+* Use dataset: **instruction–response pairs with explicit word-count constraints**, including:
+
+  * Exact-count instructions (e.g., “Answer in exactly 10 words.”)
+  * Near-count variants (e.g., 9 vs. 10 vs. 11 words)
+  * Equivalent prompts phrased differently
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Understand **why the model often fails to generate responses with the exact number of words specified**.
+
+The goal is to determine whether this failure is due to:
+
+* A missing or faulty internal representation of word count,
+* Misalignment between token-level generation and word-level constraints,
+* Limitations of control or termination mechanisms,
+* Or other internal computational factors.
+
+This project may, but does not have to, result in identifying a discrete circuit.
+
+---
+
+### TASK DESCRIPTION
+
+Large language models are frequently asked to satisfy **explicit length constraints**, such as:
+
+> “Explain gravity in exactly 12 words.”
+
+Despite appearing simple, models often produce responses with too many or too few words, or only satisfy the constraint approximately. This is an example. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* How the model internally represents length or count constraints.
+* Whether “word count” is tracked explicitly or indirectly.
+* Differences between token count, subword count, and word boundaries.
+* How generation stops when a count constraint is present.
+
+Your job is to investigate **how this behavior arises internally**, and why it fails.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative research workflow** with explicit hypothesis formation and revision.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **why exact word-count control fails**.
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly specify:
+
+* What internal signals or processes you expect to matter.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate analysis methods**, including but not limited to:
+
+   * Probing internal activations for count-related signals
+   * Causal interventions on candidate components
+   * Controlled decoding experiments
+   * Comparisons between token-level and word-level constraints
+   * Counterfactual edits to prompts or generation dynamics
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Correct vs. incorrect word-count generations
+   * Small vs. large requested counts
+   * Equivalent constraints phrased differently
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you reach a stable explanation, which may be:
+
+   * A **localized circuit** responsible for approximate counting or stopping, or
+   * A **distributed process-level explanation** involving multiple components.
+
+---
+
+### SRC_NODES
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+(Use only if circuit-level analysis is appropriate.)
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* If proposing a circuit, only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+Depending on findings, one of the following (or both):
+
+**Circuit File (if applicable)**
+
+```json
+{
+  "nodes": ["{example word-count instruction}", "a?.h?", "m?", ...]
+}
+```
+
+or
+
+**Process Description**
+
+A written account of the internal computation responsible for approximate or failed word counting.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — What word-count failure means in this study.
+2. **Data** — Example prompts and model outputs.
+3. **Method** — Experiments performed and rationale.
+4. **Results** — Observed behaviors and interventions.
+5. **Analysis** — Why exact word-count control fails.
+6. **Next Steps** — Possible ways models could improve.
+7. **Main Takeaways** — What this reveals about control and counting in models.
+
+---
+
+### OUTPUT SUMMARY
+
+* Optional `real_circuits_1.json` — if a circuit is identified.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — experimental evidence and analysis.
+* Optional — visualizations of generation dynamics or count drift.
+

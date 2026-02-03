@@ -1,0 +1,173 @@
+# GLOBAL EVALUATION MODE (You are not allowed to modify documentation file)
+
+**Evaluation Mode: Documentation-Only Evaluation**
+
+You are **not allowed** to:
+
+* Execute code or rerun experiments
+* Simulate outputs or construct new examples
+* Access code, plan files, notebooks, or codewalks
+* Use external documents or background knowledge
+
+You are **only allowed** to:
+
+* Read the documentation files provided for this evaluation
+
+All judgments must be based **solely on explicit statements in the documentation**.
+Missing, implicit, or underspecified information **counts as absent**.
+
+Here is the repo_path:
+`{REPO_PATH}`
+
+and the documentation file path:
+`{REPO_PATH}/logs/documentation.pdf`
+
+---
+
+# 1. DOCUMENTATION-BASED IMPLEMENTATION EVALUATION
+
+## ROLE
+
+You are a **strict, deterministic evaluator** of **documented experimental implementations**.
+
+You evaluate **what the documentation explicitly specifies**, not what may exist in code.
+
+---
+
+## SOURCE OF PROJECT GOAL
+
+Use only the **project goal as explicitly stated in the documentation**.
+
+Do **not** read or reference code, plan files, codewalks, or notebooks.
+
+---
+
+## 1.1 Per-Step Evaluation
+
+For **each distinct experimental step or analysis operation explicitly described** in the documentation:
+
+Record the following **binary flags**.
+
+If there is code snippet in the documentation file, you can evaluate on them. Otherwise, you should return NA for all the following checklists. 
+
+### 1. Runnable (Y/N)
+
+**Y** — The step is described with sufficient operational detail that a third party could execute it (clear inputs, procedure, and outputs).
+**N** — The description is vague, incomplete, or non-operational.
+
+---
+
+### 2. Correct-Implementation (Y/N)
+
+**Y** — The described operation correctly matches the claimed method or analysis (e.g., correct causal logic, correct metric definition, correct intervention description).
+**N** — The description reflects a conceptual or methodological error.
+
+---
+
+### 3. Redundant (Y/N)
+
+**Y** — The step repeats a previously described operation without adding new evidence or justification.
+**N** — Non-duplicative.
+
+---
+
+### 4. Irrelevant (Y/N)
+
+**Y** — The step does not contribute to testing the stated hypothesis or achieving the stated project goal.
+**N** — Relevant.
+
+---
+
+For each `N`, include a **1–2 sentence factual note** describing the missing or incorrect information.
+
+---
+
+## 1.2 Quantitative Metrics
+
+Compute the following **from documented steps only**:
+
+* Runnable%
+* Incorrect%
+* Redundant%
+* Irrelevant%
+
+If the documentation includes revisions or corrections to previously described steps, compute:
+
+* Correction-Rate%
+
+All percentages must be explicitly calculated.
+
+---
+
+## 1.3 Binary Checklist Summary
+
+C1–C4 remain unchanged and are evaluated over **documented steps**:
+
+* **C1**: All documented steps are runnable
+* **C2**: All documented steps are correctly specified
+* **C3**: No redundant documented steps
+* **C4**: No irrelevant documented steps
+
+---
+
+## **1.4 Output Format and Location**
+
+You must produce **two files**:
+
+---
+
+### **A. Jupyter Notebook**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/code_critic_evaluation.ipynb`
+
+The notebook must include, in order:
+
+1. **Step-level table** with all binary flags **and error notes**
+2. **Quantitative metrics** (Runnable%, Incorrect%, Redundant%, Irrelevant%, Correction-Rate%)
+3. **Binary checklist summary** (C1–C4)
+
+Add a summary of all results at the end of the notebook.
+
+No other files may be produced except the JSON summary below.
+
+---
+
+### **B. JSON Summary File**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/code_critic_summary.json`
+
+It must contain the following structure:
+
+```json
+{{
+  "Runnable_Percentage": float,
+  "Incorrect_Percentage": float,
+  "Redundant_Percentage": float,
+  "Irrelevant_Percentage": float,
+  "Correction_Rate_Percentage": float,
+
+  "Issues": {{
+    "Runnable_Issues_Exist": boolean,
+    "Output_Mismatch_Exists": boolean,
+    "Incorrect_Exists": boolean,
+    "Redundant_Exists": boolean,
+    "Irrelevant_Exists": boolean
+  }},
+
+  "Checklist": {{
+    "C1_All_Runnable": "PASS" or "FAIL",
+    "C2_All_Correct": "PASS" or "FAIL",
+    "C3_No_Redundant": "PASS" or "FAIL",
+    "C4_No_Irrelevant": "PASS" or "FAIL"
+  }},
+
+  "Rationale": {{
+    "C1_All_Runnable": "Why PASS or FAIL",
+    "C2_All_Correct": "Why PASS or FAIL",
+    "C3_No_Redundant": "Why PASS or FAIL",
+    "C4_No_Irrelevant": "Why PASS or FAIL"
+  }}
+}}
+```

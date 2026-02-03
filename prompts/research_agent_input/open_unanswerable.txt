@@ -1,0 +1,171 @@
+## Large Circuit Tracing Experiment — Unanswerable Question Resolution Circuit
+
+## PLAN FILE — DO NOT MODIFY
+
+### ROLE
+
+You are a **senior mechanistic interpretability researcher**.
+
+---
+
+### MODEL AND DATA
+
+* Use model: **Llama 3.2 3B** or **Qwen 2.5 3B** (or smaller variants like gpt2 medium), loaded via **HookedTransformer**. 
+* Use dataset: **AbstentionBench unanswerable QA samples** from the *facebook/AbstentionBench* dataset. Here is the link: https://github.com/facebookresearch/AbstentionBench?utm_source=chatgpt.com
+
+  * Each sample contains fields like `question`, `reference_answers`, and `should_abstain` indicating if a definitive answer exists. 
+* Ignore files under `runs/`.
+
+---
+
+### GOAL
+
+Identify a **precise circuit**—a subset of attention heads and MLPs—that reproduces the model’s **behavior on unanswerable questions**.
+
+The core question is **how the model internally detects and handles situations where the question has no well-defined answer** (e.g., unknown facts, ill-posed, false premises).
+
+---
+
+### TASK DESCRIPTION
+
+An unanswerable question presents **lack of evidence, contradictory premises, or inherently unknowable content**.
+Example (AbstentionBench format):
+
+> A biological context is given and the question asks:
+> *“How many sequences of X are available in GenBank?”*
+> Here no definitive answer exists, and the model should **abstain** rather than fabricate one. This is an example. You are allowed to create prompt dataset make it easier to study this questions.
+
+Phenomena of interest may include (non-exhaustive):
+
+* Recognition of **insufficient or contradictory evidence**.
+* Detection of **unknown answer cues** from metadata or question structure.
+* Internal signal indicating **abstention vs. confident answer**.
+* Integration of knowledge boundaries.
+
+Your job is to discover **the internal mechanism** supporting this capability.
+
+---
+
+### HYPOTHESIS, TESTING, AND REFINEMENT LOOP
+
+Follow an **iterative workflow**.
+
+#### Phase 1 — Initial Hypothesis
+
+1. Formulate an initial hypothesis about **how the behavior might be implemented internally** (e.g., where uncertainty signals form, how they influence final outputs).
+2. Record your hypothesis and experimental plan in:
+
+   * `logs/plan_v1.md`
+   * `notebooks/plan_v1_Md.ipynb`
+
+Your plan should clearly state:
+
+* What behavior you aim to localize.
+* What observations would support or falsify your hypothesis.
+
+---
+
+#### Phase 2 — Testing the Hypothesis
+
+1. Design and run experiments to test your hypothesis.
+
+2. You may use **any appropriate mechanistic interpretability methods**, such as:
+
+   * Probing
+   * Activation patching
+   * Causal interventions
+   * Representation analysis
+   * Controlled counterfactual inputs
+
+3. Compare behavior across relevant contrasts, such as:
+
+   * Answerable vs. unanswerable questions.
+   * Altered context where answerability changes.
+   * Questions with missing vs. sufficient evidence.
+
+---
+
+#### Phase 3 — Refinement
+
+1. Based on empirical results, refine or revise your hypothesis.
+2. Document updates in:
+
+   * `logs/plan_v2.md`, `logs/plan_v3.md`, etc.
+3. Iterate until you identify a **minimal, interpretable circuit** that reliably reproduces unanswerable QA handling behavior.
+
+---
+
+### SRC_NODES
+
+
+```
+[
+  'input',
+  'a0.h0','a0.h1',...,'a11.h11',
+  'm0','m1',...,'m11'
+]
+```
+
+---
+
+### CONSTRAINTS
+
+* Must generate a plan before implementation and update it after each refinement.
+* Only include nodes from `src_nodes`.
+* Node names must follow `a{layer}.h{head}`, `m{layer}`, or `input`.
+
+---
+
+### EXPECTED OUTPUTS
+
+**Final Circuit File**
+
+```json
+{
+  "nodes": ["{example unanswerable QA}", "a?.h?", "m?", ...]
+}
+```
+
+Validation:
+
+* All nodes are in `src_nodes`.
+* Naming is consistent.
+
+---
+
+### FILES TO PRODUCE
+
+**Logs (Markdown):**
+
+* `logs/plan_v1.md`, `logs/plan_v2.md`, ...
+* `logs/documentation.md`
+* `logs/code_walk.md`
+
+**Notebooks:**
+
+* `notebooks/plan_v1_Md.ipynb`, `notebooks/plan_v2_Md.ipynb`, …
+* `notebooks/documentation_Md.ipynb`
+* `notebooks/code_walk_Md.ipynb`
+
+---
+
+### DOCUMENTATION REQUIREMENTS
+
+`logs/documentation.md` must include:
+
+1. **Goal** — Description of unanswerable QA handling behavior studied.
+2. **Data** — Example unanswerable and answerable questions from the dataset.
+3. **Method** — Experiments performed and why they are informative.
+4. **Results** — Final circuit and behavioral effects.
+5. **Analysis** — How the circuit supports uncertainty and abstention.
+6. **Next Steps** — Open questions and limitations.
+7. **Main Takeaways** — What this reveals about how the model reasons about unanswerable questions.
+
+---
+
+### OUTPUT SUMMARY
+
+* `real_circuits_1.json` — final node list.
+* `logs/` — evolving plans and documentation.
+* `notebooks/` — supporting experimental evidence.
+* Optional — visualizations of internal signal flow on unanswerability.

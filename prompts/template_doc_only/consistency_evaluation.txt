@@ -1,0 +1,144 @@
+# GLOBAL EVALUATION MODE (You are not allowed to modify documentation file)
+
+**Evaluation Mode: Documentation-Only Evaluation**
+
+You are **not allowed** to:
+
+* Execute code or rerun experiments
+* Simulate outputs or construct new examples
+* Access code, plan files, notebooks, or codewalks
+* Use external documents or background knowledge
+
+You are **only allowed** to:
+
+* Read the documentation files provided for this evaluation
+
+All judgments must be based **solely on explicit statements in the documentation**.
+Missing, implicit, or underspecified information **counts as absent**.
+
+Here is the repo_path:
+`{REPO_PATH}`
+
+and the documentation file path:
+`{REPO_PATH}/logs/documentation.pdf`
+
+---
+
+# 2. CONSISTENCY EVALUATION — DOCUMENTATION ONLY
+
+If you think the documentation is not sufficient for you to evaluate, you should return NA for the checklist.
+
+## ROLE
+
+You are a **strict critic model** responsible for evaluating whether a **research project**, as described in the documentation, **meets its stated goal and maintains internal consistency**.
+
+You evaluate **claims, reasoning, and conclusions** based **only on what is explicitly documented**.
+
+---
+
+## SOURCE OF PROJECT GOAL
+
+Use only the **project goal explicitly stated in the documentation**.
+
+Do **not** infer goals from code structure, prior work, or background knowledge.
+
+If no explicit goal is stated, this must be treated as missing information.
+
+---
+
+## BINARY CHECKLIST
+
+Each item must be marked **PASS / FAIL**, strictly based on whether the condition is satisfied **by the documentation alone**.
+
+---
+
+### **CS1. Conclusion vs Documented Results**
+
+**PASS** — All evaluable conclusions in the documentation are directly supported by the **results explicitly reported** in the documentation.
+**FAIL** — At least one conclusion contradicts, exaggerates, or is not supported by the documented results.
+
+Results must be **explicitly stated**. Implied or assumed outcomes do not count.
+
+---
+
+### **CS2. Documented Implementation Follows the Stated Plan**
+
+**PASS** — The documentation explicitly describes a plan, methodology, or ordered procedure, and all described experimental or analytical steps follow that plan.
+**FAIL** — A plan is missing, incomplete, or at least one documented step deviates from, omits, or is inconsistent with the stated plan.
+
+If no plan or structured methodology is explicitly described, mark **FAIL**.
+
+---
+
+### **CS3. Effect Size**
+
+**PASS** — The documentation clearly demonstrates that the reported effects have a **non-trivial magnitude** relative to a stated baseline, control, or variability.
+**FAIL** — Effects are described as small, marginal, qualitative only, or lack comparison to baseline or variability.
+
+Statistical detectability alone is **not sufficient**.
+
+---
+
+### **CS4. Justification of Steps and Intermediate Conclusions**
+
+**PASS** — All key design choices and intermediate conclusions are explicitly justified, explaining **why each step was chosen** and **how each conclusion follows from the documented evidence**.
+**FAIL** — At least one key step or intermediate conclusion lacks explicit justification or evidential linkage.
+
+Assertions without explanation count as missing justification.
+
+---
+
+### **CS5. Statistical Significance Reporting**
+
+**PASS** — Key results supporting the main claims explicitly report uncertainty, variability, or statistical significance, with a clear explanation of what is measured.
+**FAIL** — Results are reported without uncertainty estimates, significance information, or with undefined or ambiguous measures.
+
+---
+
+## **2.1 Output Format and Location**
+
+You must produce **two files**:
+
+---
+
+### **A. Jupyter Notebook**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/self_matching.ipynb`
+
+The notebook must include, in order:
+
+1. A **concise list of mismatches, missing elements, or unsupported claims** that led to any FAIL.
+2. A **binary checklist table** for CS1–CS5.
+3. A **short summary** of the overall consistency evaluation at the end.
+
+If citing documentation text is necessary, include **verbatim excerpts**.
+
+---
+
+### **B. JSON Summary File**
+
+**Path:**
+`{REPO_PATH}/doc_only_evaluation/consistency_evaluation.json`
+
+It must contain the following structure:
+
+```json
+{{
+  "Checklist": {{
+    "CS1_Results_vs_Conclusion": "PASS" or "FAIL",
+    "CS2_Plan_vs_Implementation": "PASS" or "FAIL",
+    "CS3_Effect_Size": "PASS" or "FAIL",
+    "CS4_Justification": "PASS" or "FAIL",
+    "CS5_Statistical_Significance": "PASS" or "FAIL"
+  }},
+
+  "Rationale": {{
+    "CS1_Results_vs_Conclusion": "Why PASS or FAIL",
+    "CS2_Plan_vs_Implementation": "Why PASS or FAIL",
+    "CS3_Effect_Size": "Why PASS or FAIL",
+    "CS4_Justification": "Why PASS or FAIL",
+    "CS5_Statistical_Significance": "Why PASS or FAIL"
+  }}
+}}
+```
