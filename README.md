@@ -2,6 +2,8 @@
 
 Reproducibility crises across sciences highlight the limitations of the paper-centric review system in assessing the rigor and reproducibility of research. AI agents that autonomously design and generate large volumes of research outputs exacerbate these challenges. In this work, we address the growing challenges of scalability and rigor by flipping the dynamic and developing AI agents as research evaluators. We propose the first execution-grounded evaluation framework that verifies research beyond narrative review by examining code and data alongside the paper. We use mechanistic interpretability research as a testbed, build standardized research output, and develop **MechEvalAgent**, an automated evaluation framework that assesses the *coherence* of the experimental process, the *reproducibility* of results, and the *generalizability* of findings. We show that our framework achieves above 80% agreement with human judges, identifies substantial methodological problems, and surfaces 51 additional issues that human reviewers miss. Our work demonstrates the potential of AI agents to transform research evaluation and pave the way for rigorous scientific practices.
 
+<img width="1435" height="656" alt="Screenshot 2026-02-02 at 19 00 40" src="https://github.com/user-attachments/assets/c899e913-b446-4867-b093-61cb3dfd24b9" />
+
 ## Setup
 
 **Requirements:**
